@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Experto — Diabetes Mellitus Tipo 2</title>
+    <meta name="description"
+        content="Sistema Experto basado en reglas para el diagnóstico de riesgo de Diabetes Mellitus Tipo 2. Selecciona los síntomas presentes y obtén una evaluación inmediata.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            /* ── Paleta base (igual que Titanic) ── */
+            --navy:      #0a0f1e;
+            --deep:      #0d1628;
+            --panel:     #111d33;
+            --border:    #1e2f4d;
+            --text:      #d4ddf0;
+            --muted:     #6a7d9e;
+            --input-bg:  #0d1931;
+
+            /* ── Acento médico: verde-azul clínico ── */
+            --accent:    #34c8a0;
+            --accent2:   #6ee7c7;
+            --accent-dim: rgba(52, 200, 160, 0.08);
+
+            /* ── Colores de resultado (6 niveles) ── */
+            --risk-critico:       #c0392b;
+            --risk-alto:          #e05c5c;
+            --risk-mod-alto:      #e09a3a;
+            --risk-alerta:        #e0c83a;
+            --risk-moderado:      #5c9de0;
+            --risk-baja:          #34c8a0;
+        }
+
+        body {
+            background-color: var(--navy);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 48px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ── Grid de fondo ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(52, 200, 160, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(52, 200, 160, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Orb de fondo ── */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px;
+            height: 450px;
+            background: radial-gradient(ellipse, rgba(52, 200, 160, 0.07) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Contenedor principal ── */
+        .container {
+            width: 100%;
+            max-width: 620px;
+            animation: fadeUp 0.6s ease both;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ════════════════════════════════
+           HEADER
+        ════════════════════════════════ */
+        .header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(52, 200, 160, 0.1);
+            border: 1px solid rgba(52, 200, 160, 0.3);
+            border-radius: 100px;
+            padding: 5px 14px;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent2);
+            margin-bottom: 18px;
+        }
+
+        .badge-icon {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(26px, 5vw, 36px);
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.15;
+            margin-bottom: 10px;
+        }
+
+        h1 span {
+            color: var(--accent);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0 20px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .divider-icon { color: var(--accent); font-size: 16px; }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.65;
+            font-weight: 300;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* ════════════════════════════════
+           CARD
+        ════════════════════════════════ */
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        .card-section-title {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-section-title svg {
+            width: 15px;
+            height: 15px;
+            fill: currentColor;
+        }
+
+        /* ════════════════════════════════
+           SÍNTOMAS — CHECKBOXES
+        ════════════════════════════════ */
+        .sintomas-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 500px) {
+            .sintomas-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Etiqueta envolvente del checkbox */
+        .sintoma-item {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 0;
+            cursor: pointer;
+        }
+
+        /* Input oculto */
+        .sintoma-item input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* Caja visual */
+        .sintoma-box {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            width: 100%;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+
+        .sintoma-item:hover .sintoma-box {
+            border-color: rgba(52, 200, 160, 0.4);
+            background: rgba(52, 200, 160, 0.04);
+        }
+
+        /* Estado checked */
+        .sintoma-item input:checked ~ .sintoma-box {
+            border-color: var(--accent);
+            background: rgba(52, 200, 160, 0.09);
+            box-shadow: 0 0 0 3px rgba(52, 200, 160, 0.08);
+        }
+
+        /* Fila superior: indicador + nombre */
+        .sintoma-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Indicador cuadrado animado */
+        .check-indicator {
+            width: 16px;
+            height: 16px;
+            min-width: 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 4px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .check-indicator svg {
+            width: 10px;
+            height: 10px;
+            fill: none;
+            stroke: var(--accent2);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: opacity 0.15s, transform 0.15s;
+        }
+
+        .sintoma-item input:checked ~ .sintoma-box .check-indicator {
+            border-color: var(--accent);
+            background: var(--accent);
+        }
+
+        .sintoma-item input:checked ~ .sintoma-box .check-indicator svg {
+            stroke: #0a0f1e;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .sintoma-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            line-height: 1.2;
+            transition: color 0.2s;
+        }
+
+        .sintoma-item input:checked ~ .sintoma-box .sintoma-name {
+            color: var(--accent2);
+        }
+
+        /* Descripción breve */
+        .sintoma-desc {
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.4;
+            padding-left: 24px;
+            font-weight: 300;
+        }
+
+        /* Tag "cardinal" */
+        .tag-cardinal {
+            font-size: 9px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent);
+            background: rgba(52, 200, 160, 0.12);
+            border: 1px solid rgba(52, 200, 160, 0.25);
+            border-radius: 4px;
+            padding: 1px 5px;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        /* ════════════════════════════════
+           BOTÓN SUBMIT
+        ════════════════════════════════ */
+        .btn-wrapper {
+            margin-top: 24px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #1fa87a, var(--accent), var(--accent2));
+            background-size: 200% 200%;
+            border: none;
+            border-radius: 10px;
+            color: #0a0f1e;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-position 0.4s, transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(52, 200, 160, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .btn:hover {
+            background-position: right center;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 28px rgba(52, 200, 160, 0.35);
+        }
+
+        .btn:active { transform: translateY(0); }
+
+        /* ════════════════════════════════
+           RESULTADO
+        ════════════════════════════════ */
+        .resultado {
+            border-radius: 14px;
+            padding: 28px;
+            border: 1px solid;
+            animation: fadeUp 0.5s ease both;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .resultado::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+        }
+
+        /* — Colores por nivel de riesgo (6 niveles) — */
+        .risk-critico         { background: rgba(192,57,43,0.09);   border-color: rgba(192,57,43,0.35);  }
+        .risk-critico::before { background: var(--risk-critico); }
+
+        .risk-alto            { background: rgba(224,92,92,0.07);   border-color: rgba(224,92,92,0.3);   }
+        .risk-alto::before    { background: var(--risk-alto); }
+
+        .risk-mod-alto            { background: rgba(224,154,58,0.07); border-color: rgba(224,154,58,0.3); }
+        .risk-mod-alto::before    { background: var(--risk-mod-alto); }
+
+        .risk-alerta          { background: rgba(224,200,58,0.07);  border-color: rgba(224,200,58,0.3);  }
+        .risk-alerta::before  { background: var(--risk-alerta); }
+
+        .risk-moderado        { background: rgba(92,157,224,0.07);  border-color: rgba(92,157,224,0.3);  }
+        .risk-moderado::before{ background: var(--risk-moderado); }
+
+        .risk-baja            { background: rgba(52,200,160,0.07);  border-color: rgba(52,200,160,0.3);  }
+        .risk-baja::before    { background: var(--risk-baja); }
+
+        /* — Layout interno del resultado — */
+        .resultado-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .resultado-icon {
+            width: 56px;
+            height: 56px;
+            min-width: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .resultado-icon svg {
+            width: 30px;
+            height: 30px;
+            fill: currentColor;
+        }
+
+        .risk-critico  .resultado-icon { background: rgba(192,57,43,0.18);  color: var(--risk-critico); }
+        .risk-alto     .resultado-icon { background: rgba(224,92,92,0.15);  color: var(--risk-alto); }
+        .risk-mod-alto .resultado-icon { background: rgba(224,154,58,0.15); color: var(--risk-mod-alto); }
+        .risk-alerta   .resultado-icon { background: rgba(224,200,58,0.15); color: var(--risk-alerta); }
+        .risk-moderado .resultado-icon { background: rgba(92,157,224,0.15); color: var(--risk-moderado); }
+        .risk-baja     .resultado-icon { background: rgba(52,200,160,0.15); color: var(--risk-baja); }
+
+        .result-label {
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .result-riesgo {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .risk-critico  .result-riesgo { color: var(--risk-critico); }
+        .risk-alto     .result-riesgo { color: var(--risk-alto); }
+        .risk-mod-alto .result-riesgo { color: var(--risk-mod-alto); }
+        .risk-alerta   .result-riesgo { color: var(--risk-alerta); }
+        .risk-moderado .result-riesgo { color: var(--risk-moderado); }
+        .risk-baja     .result-riesgo { color: var(--risk-baja); }
+
+        /* Barra de progreso de síntomas */
+        .prob-section {
+            margin-bottom: 18px;
+        }
+
+        .prob-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 7px;
+        }
+
+        .prob-label { font-size: 12px; color: var(--muted); }
+        .prob-num   { font-size: 13px; font-weight: 500; color: var(--text); }
+
+        .prob-bar-track {
+            background: rgba(255,255,255,0.06);
+            border-radius: 100px;
+            height: 6px;
+            overflow: hidden;
+        }
+
+        .prob-bar-fill {
+            height: 100%;
+            border-radius: 100px;
+            transition: width 1s cubic-bezier(.4,0,.2,1);
+        }
+
+        .risk-critico  .prob-bar-fill { background: var(--risk-critico); }
+        .risk-alto     .prob-bar-fill { background: var(--risk-alto); }
+        .risk-mod-alto .prob-bar-fill { background: var(--risk-mod-alto); }
+        .risk-alerta   .prob-bar-fill { background: var(--risk-alerta); }
+        .risk-moderado .prob-bar-fill { background: var(--risk-moderado); }
+        .risk-baja     .prob-bar-fill { background: var(--risk-baja); }
+
+        /* Diagnóstico */
+        .result-diagnostico {
+            font-size: 13.5px;
+            color: var(--text);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        /* Chips de síntomas detectados */
+        .chips-section { margin-bottom: 16px; }
+        .chips-title {
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .chip {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 100px;
+            font-weight: 500;
+        }
+
+        .chip-clave {
+            background: rgba(52,200,160,0.12);
+            border: 1px solid rgba(52,200,160,0.3);
+            color: var(--accent2);
+        }
+
+        /* Badge de número de regla */
+        .regla-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 14px;
+        }
+
+        .regla-badge strong {
+            color: var(--accent2);
+            font-weight: 600;
+        }
+
+        /* Recomendación */
+        .recomendacion {
+            background: rgba(255,255,255,0.03);
+            border-left: 2px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            padding: 12px 14px;
+            font-size: 12.5px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .recomendacion strong {
+            color: var(--text);
+            display: block;
+            margin-bottom: 4px;
+            font-size: 11px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        /* ════════════════════════════════
+           FOOTER
+        ════════════════════════════════ */
+        .footer-note {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 0.04em;
+            line-height: 1.6;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .back-link:hover { opacity: 1; }
+
+        /* ════════════════════════════════
+           BOTÓN VER REGLAS
+        ════════════════════════════════ */
+        .rules-toggle-wrapper {
+            margin-bottom: 16px;
+        }
+
+        .btn-rules {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            padding: 12px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+        }
+
+        .btn-rules svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+
+        .btn-rules .chevron {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-rules.open .chevron {
+            transform: rotate(180deg);
+        }
+
+        .btn-rules:hover {
+            border-color: rgba(52, 200, 160, 0.4);
+            color: var(--accent2);
+            background: rgba(52, 200, 160, 0.04);
+        }
+
+        /* Panel colapsable */
+        .rules-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 16px;
+        }
+
+        .rules-panel.open {
+            max-height: 1200px;
+        }
+
+        .rules-panel-inner {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rules-panel-inner::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        /* Bloque individual de regla Prolog */
+        .prolog-rule-block {
+            margin-bottom: 16px;
+        }
+
+        .prolog-rule-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .prolog-rule-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .prolog-num {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            background: rgba(52, 200, 160, 0.12);
+            border: 1px solid rgba(52, 200, 160, 0.25);
+            color: var(--accent2);
+            border-radius: 4px;
+            padding: 2px 7px;
+        }
+
+        .prolog-desc {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+            letter-spacing: 0.04em;
+        }
+
+        /* Bloque de código Prolog */
+        .prolog-code {
+            background: #080d1a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 12.5px;
+            color: #a8d8a8;
+            line-height: 1.7;
+            margin: 0;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        /* Prolog en el resultado del diagnóstico */
+        .prolog-activada {
+            margin-bottom: 18px;
+        }
+
+        .prolog-activada-label {
+            display: block;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 7px;
+        }
+
+        .prolog-code-result {
+            border-color: rgba(52, 200, 160, 0.2);
+            background: rgba(8, 13, 26, 0.7);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- ── CABECERA ── -->
+        <div class="header">
+            <div class="badge">
+                <svg class="badge-icon" viewBox="0 0 24 24">
+                    <path d="M19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M13,17H11V13H7V11H11V7H13V11H17V13H13V17Z"/>
+                </svg>
+                Sistema Experto · Diagnóstico Clínico
+            </div>
+
+            <h1>Diabetes Mellitus <span>Tipo 2</span></h1>
+
+            <div class="divider"><span class="divider-icon">✦</span></div>
+
+            <p class="subtitle">
+                Selecciona todos los síntomas que experimentas actualmente.
+                El sistema experto analizará tu perfil clínico y estimará
+                el nivel de riesgo de Diabetes Mellitus Tipo 2.
+            </p>
+        </div>
+
+        <!-- ── FORMULARIO ── -->
+        <div class="card">
+            <p class="card-section-title">
+                <svg viewBox="0 0 24 24"><path d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/></svg>
+                Selecciona los síntomas presentes
+            </p>
+
+            <form id="diabetes-form" action="/diabetes/diagnosticar" method="POST">
+                <div class="sintomas-grid">
+
+                    <!-- 1. POLIURIA -->
+                    <label class="sintoma-item">
+                        <input type="checkbox" name="sintomas" value="poliuria"
+                            {% if 'poliuria' in sintomas_marcados %}checked{% endif %}>
+                        <div class="sintoma-box">
+                            <div class="sintoma-header">
+                                <span class="check-indicator">
+                                    <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                                </span>
+                                <span class="sintoma-name">Poliuria</span>
+                            </div>
+                            <span class="sintoma-desc">Necesidad de orinar frecuente y en grandes cantidades.</span>
+                        </div>
+                    </label>
+
+                    <!-- 2. POLIDIPSIA -->
+                    <label class="sintoma-item">
+                        <input type="checkbox" name="sintomas" value="polidipsia"
+                            {% if 'polidipsia' in sintomas_marcados %}checked{% endif %}>
+                        <div class="sintoma-box">
+                            <div class="sintoma-header">
+                                <span class="check-indicator">
+                                    <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                                </span>
+                                <span class="sintoma-name">Polidipsia</span>
+                            </div>
+                            <span class="sintoma-desc">Sed extrema, constante e inusual.</span>
+                        </div>
+                    </label>
+
+                    <!-- 3. POLIFAGIA -->
+                    <label class="sintoma-item">
+                        <input type="checkbox" name="sintomas" value="polifagia"
+                            {% if 'polifagia' in sintomas_marcados %}checked{% endif %}>
+                        <div class="sintoma-box">
+                            <div class="sintoma-header">
+                                <span class="check-indicator">
+                                    <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                                </span>
+                                <span class="sintoma-name">Polifagia</span>
+                            </div>
+                            <span class="sintoma-desc">Hambre excesiva aunque se haya comido recientemente.</span>
+                        </div>
+                    </label>
+
+                    <!-- 4. PÉRDIDA DE PESO -->
+                    <label class="sintoma-item">
+                        <input type="checkbox" name="sintomas" value="perdida_peso"
+                            {% if 'perdida_peso' in sintomas_marcados %}checked{% endif %}>
+                        <div class="sintoma-box">
+                            <div class="sintoma-header">
+                                <span class="check-indicator">
+                                    <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                                </span>
+                                <span class="sintoma-name">Pérdida de peso</span>
+                            </div>
+                            <span class="sintoma-desc">Pérdida de peso inexplicada sin cambiar dieta.</span>
+                        </div>
+                    </label>
+
+                    <!-- 5. FATIGA -->
+                    <label class="sintoma-item">
+                        <input type="checkbox" name="sintomas" value="fatiga"
+                            {% if 'fatiga' in sintomas_marcados %}checked{% endif %}>
+                        <div class="sintoma-box">
+                            <div class="sintoma-header">
+                                <span class="check-indicator">
+                                    <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                                </span>
+                                <span class="sintoma-name">Fatiga</span>
+                            </div>
+                            <span class="sintoma-desc">Cansancio persistente o falta de energía habitual.</span>
+                        </div>
+                    </label>
+
+                    <!-- 6. VISIÓN BORROSA -->
+                    <label class="sintoma-item">
+                        <input type="checkbox" name="sintomas" value="vision_borrosa"
+                            {% if 'vision_borrosa' in sintomas_marcados %}checked{% endif %}>
+                        <div class="sintoma-box">
+                            <div class="sintoma-header">
+                                <span class="check-indicator">
+                                    <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                                </span>
+                                <span class="sintoma-name">Visión borrosa</span>
+                            </div>
+                            <span class="sintoma-desc">Dificultad para enfocar o visión nublada.</span>
+                        </div>
+                    </label>
+
+                    <!-- 7. NEUROPATÍA -->
+                    <label class="sintoma-item">
+                        <input type="checkbox" name="sintomas" value="neuropatia"
+                            {% if 'neuropatia' in sintomas_marcados %}checked{% endif %}>
+                        <div class="sintoma-box">
+                            <div class="sintoma-header">
+                                <span class="check-indicator">
+                                    <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                                </span>
+                                <span class="sintoma-name">Neuropatía</span>
+                            </div>
+                            <span class="sintoma-desc">Hormigueo, ardor o entumecimiento en manos y pies.</span>
+                        </div>
+                    </label>
+
+                    <!-- 8. CURACIÓN LENTA -->
+                    <label class="sintoma-item">
+                        <input type="checkbox" name="sintomas" value="curacion_lenta"
+                            {% if 'curacion_lenta' in sintomas_marcados %}checked{% endif %}>
+                        <div class="sintoma-box">
+                            <div class="sintoma-header">
+                                <span class="check-indicator">
+                                    <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                                </span>
+                                <span class="sintoma-name">Curación lenta</span>
+                            </div>
+                            <span class="sintoma-desc">Las heridas o cortes tardan más de lo normal en sanar.</span>
+                        </div>
+                    </label>
+
+                    <!-- 9. INFECCIONES RECURRENTES -->
+                    <label class="sintoma-item">
+                        <input type="checkbox" name="sintomas" value="infecciones_recurrentes"
+                            {% if 'infecciones_recurrentes' in sintomas_marcados %}checked{% endif %}>
+                        <div class="sintoma-box">
+                            <div class="sintoma-header">
+                                <span class="check-indicator">
+                                    <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                                </span>
+                                <span class="sintoma-name">Infecciones recurrentes</span>
+                            </div>
+                            <span class="sintoma-desc">Infecciones frecuentes de orina, piel o encías.</span>
+                        </div>
+                    </label>
+
+                    <!-- 10. ACANTOSIS NIGRICANS -->
+                    <label class="sintoma-item">
+                        <input type="checkbox" name="sintomas" value="acantosis_nigricans"
+                            {% if 'acantosis_nigricans' in sintomas_marcados %}checked{% endif %}>
+                        <div class="sintoma-box">
+                            <div class="sintoma-header">
+                                <span class="check-indicator">
+                                    <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                                </span>
+                                <span class="sintoma-name">Acantosis nigricans</span>
+                            </div>
+                            <span class="sintoma-desc">Manchas oscuras en cuello, axilas o pliegues de la piel.</span>
+                        </div>
+                    </label>
+
+                </div><!-- /sintomas-grid -->
+
+                <!-- Botón -->
+                <div class="btn-wrapper">
+                    <button type="submit" class="btn" id="btn-diagnosticar">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M13,17H11V13H7V11H11V7H13V11H17V13H13V17Z"/>
+                        </svg>
+                        Ejecutar Diagnóstico
+                    </button>
+                </div>
+            </form>
+        </div><!-- /card -->
+
+        <!-- Botón: Ver todas las reglas -->
+        <div class="rules-toggle-wrapper">
+            <button class="btn-rules" id="btn-ver-reglas" onclick="toggleReglas()">
+                <svg viewBox="0 0 24 24">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10,19L12,15H10V11H14V15L12,19H10Z"/>
+                </svg>
+                Ver todas las reglas en formato Prolog
+                <svg class="chevron" id="chevron-reglas" viewBox="0 0 24 24">
+                    <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Panel colapsable con todas las reglas Prolog -->
+        <div class="rules-panel" id="panel-reglas">
+            <div class="rules-panel-inner">
+                <p class="card-section-title" style="margin-bottom:16px">
+                    <svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:currentColor">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10,19L12,15H10V11H14V15L12,19H10Z"/>
+                    </svg>
+                    Base de Conocimiento — Reglas Prolog
+                </p>
+                {% for r in reglas_prolog %}
+                <div class="prolog-rule-block">
+                    <div class="prolog-rule-header">
+                        <span class="prolog-num">R{{ r.num if r.num > 0 else 'DEF' }}</span>
+                        <span class="prolog-desc">{{ r.descripcion }}</span>
+                    </div>
+                    <pre class="prolog-code">{{ r.regla }}</pre>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════
+             RESULTADO (visible solo si hay diagnóstico)
+        ════════════════════════════════ -->
+        {% if resultado %}
+
+        {# Mapear el riesgo a la clase CSS correspondiente #}
+        {% set riesgo_clase = {
+            'Crítico':          'critico',
+            'Alto':             'alto',
+            'Moderado-Alto':    'mod-alto',
+            'Alerta Temprana':  'alerta',
+            'Moderado':         'moderado',
+            'Baja probabilidad':'baja'
+        } %}
+        {% set css_class = riesgo_clase.get(resultado.riesgo, 'baja') %}
+
+        <div class="resultado risk-{{ css_class }}">
+
+            <!-- Cabecera del resultado -->
+            <div class="resultado-header">
+                <div class="resultado-icon">
+                    {% if resultado.riesgo == 'Crítico' %}
+                    <svg viewBox="0 0 24 24"><path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/></svg>
+                    {% elif resultado.riesgo == 'Alto' %}
+                    <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,17A1.5,1.5 0 0,1 10.5,15.5A1.5,1.5 0 0,1 12,14A1.5,1.5 0 0,1 13.5,15.5A1.5,1.5 0 0,1 12,17M12,10.5C11.17,10.5 10.5,11.17 10.5,12H9C9,10.34 10.34,9 12,9C13.66,9 15,10.34 15,12C15,13.02 14.47,13.93 13.67,14.45L13,14.84V15.5H11V14L12.44,13.18C12.79,12.95 13,12.59 13,12.19C13,11.78 12.55,10.5 12,10.5Z"/></svg>
+                    {% elif resultado.riesgo == 'Moderado-Alto' %}
+                    <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,7A1,1 0 0,0 11,8A1,1 0 0,0 12,9A1,1 0 0,0 13,8A1,1 0 0,0 12,7M11,17H13V11H11V17Z"/></svg>
+                    {% elif resultado.riesgo == 'Alerta Temprana' %}
+                    <svg viewBox="0 0 24 24"><path d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16"/></svg>
+                    {% elif resultado.riesgo == 'Moderado' %}
+                    <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,17H13V11H11M11,9H13V7H11V9Z"/></svg>
+                    {% else %}
+                    <svg viewBox="0 0 24 24"><path d="M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M10,17L5,12L6.41,10.59L10,14.17L17.59,6.58L19,8L10,17Z"/></svg>
+                    {% endif %}
+                </div>
+                <div>
+                    <p class="result-label">Nivel de riesgo estimado</p>
+                    <p class="result-riesgo">{{ resultado.riesgo }}</p>
+                </div>
+            </div>
+
+            <!-- Regla activada y su forma Prolog -->
+            {% if resultado.regla > 0 %}
+            <p class="regla-badge">⚡ Regla activada: <strong>Regla {{ resultado.regla }}</strong></p>
+            {% else %}
+            <p class="regla-badge">⚡ <strong>Regla por defecto</strong></p>
+            {% endif %}
+            <div class="prolog-activada">
+                <span class="prolog-activada-label">Forma Prolog de la regla activada</span>
+                <pre class="prolog-code prolog-code-result">{{ resultado.prolog }}</pre>
+            </div>
+
+            <!-- Barra de síntomas -->
+            <div class="prob-section">
+                <div class="prob-meta">
+                    <span class="prob-label">Síntomas presentes</span>
+                    <span class="prob-num">{{ resultado.total }} / 10 &nbsp;({{ resultado.porcentaje }}%)</span>
+                </div>
+                <div class="prob-bar-track">
+                    <div class="prob-bar-fill" style="width: {{ resultado.porcentaje }}%"></div>
+                </div>
+            </div>
+
+            <!-- Diagnóstico -->
+            <p class="result-diagnostico">{{ resultado.diagnostico }}</p>
+
+            <!-- Chips de síntomas clave que dispararon la regla -->
+            {% if resultado.sintomas_clave %}
+            <div class="chips-section">
+                <p class="chips-title">Síntomas que activaron esta regla</p>
+                <div class="chips">
+                    {% for s in resultado.sintomas_clave %}
+                    <span class="chip chip-clave">{{ s | replace('_', ' ') | title }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recomendación -->
+            <div class="recomendacion">
+                <strong>⚕ Recomendación clínica</strong>
+                {{ resultado.recomendacion }}
+            </div>
+
+        </div><!-- /resultado -->
+        {% endif %}
+
+        <!-- ── FOOTER ── -->
+        <p class="footer-note">
+            Este sistema es una herramienta de apoyo educativo y no reemplaza el diagnóstico médico profesional.
+            <br>
+            <a class="back-link" href="/">
+                ← Volver al Predictor del Titanic
+            </a>
+        </p>
+
+    </div><!-- /container -->
+
+    <script>
+        function toggleReglas() {
+            var panel  = document.getElementById('panel-reglas');
+            var btn    = document.getElementById('btn-ver-reglas');
+            panel.classList.toggle('open');
+            btn.classList.toggle('open');
+        }
+    </script>
+</body>
+
+</html>

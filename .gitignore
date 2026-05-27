@@ -1,0 +1,9 @@
+# Ignorar caché de Python (MUY IMPORTANTE)
+__pycache__/
+
+# Ignorar modelos y escaladores
+*.h5
+*.pkl
+
+# Ignorar entorno virtual (¡Muy importante!)
+ec2ml/

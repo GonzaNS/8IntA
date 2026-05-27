@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción del Titanic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --navy: #0a0f1e;
+            --deep: #0d1628;
+            --panel: #111d33;
+            --border: #1e2f4d;
+            --accent: #c9a84c;
+            --accent2: #e8c97a;
+            --text: #d4ddf0;
+            --muted: #6a7d9e;
+            --input-bg: #0d1931;
+            --survive: #2dd4a0;
+            --perish: #e05c5c;
+        }
+
+        body {
+            background-color: var(--navy);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Background grid pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(201, 168, 76, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(201, 168, 76, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        /* Glowing orb top */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 400px;
+            background: radial-gradient(ellipse, rgba(201, 168, 76, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(201, 168, 76, 0.1);
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            border-radius: 100px;
+            padding: 5px 14px;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent2);
+            margin-bottom: 18px;
+        }
+
+        .svg-icon {
+            width: 1.2em;
+            height: 1.2em;
+            vertical-align: middle;
+            fill: currentColor;
+            margin-right: 5px;
+        }
+
+        .btn-icon {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+            vertical-align: text-bottom;
+            margin-right: 8px;
+        }
+
+        .badge-icon {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(26px, 5vw, 34px);
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.15;
+            margin-bottom: 10px;
+        }
+
+        h1 span {
+            color: var(--accent);
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0 28px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .divider-icon {
+            color: var(--accent);
+            font-size: 16px;
+        }
+
+        /* Card */
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        /* Form grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .label-icon {
+            margin-right: 5px;
+        }
+
+        input,
+        select {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 10px 13px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        input::placeholder {
+            color: #3a4d6a;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1);
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '▾';
+            position: absolute;
+            right: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            pointer-events: none;
+            font-size: 12px;
+        }
+
+        select option {
+            background: var(--deep);
+        }
+
+        /* Submit button */
+        .btn {
+            grid-column: 1 / -1;
+            margin-top: 6px;
+            padding: 14px;
+            background: linear-gradient(135deg, #b8922e, var(--accent), var(--accent2));
+            background-size: 200% 200%;
+            border: none;
+            border-radius: 10px;
+            color: #0a0f1e;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-position 0.4s, transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(201, 168, 76, 0.25);
+        }
+
+        .btn:hover {
+            background-position: right center;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 28px rgba(201, 168, 76, 0.35);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Result section */
+        .resultado {
+            margin-top: 22px;
+            border-radius: 12px;
+            padding: 22px 24px;
+            text-align: center;
+            border: 1px solid;
+            animation: fadeUp 0.4s ease both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .resultado.survived {
+            background: rgba(45, 212, 160, 0.07);
+            border-color: rgba(45, 212, 160, 0.3);
+        }
+
+        .resultado.perished {
+            background: rgba(224, 92, 92, 0.07);
+            border-color: rgba(224, 92, 92, 0.3);
+        }
+
+        .resultado::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+        }
+
+        .resultado.survived::before {
+            background: var(--survive);
+        }
+
+        .resultado.perished::before {
+            background: var(--perish);
+        }
+
+        .result-icon {
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: center;
+        }
+
+        @keyframes floatSurvive {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-8px) rotate(5deg);
+            }
+        }
+
+        @keyframes waveMotion {
+            0% {
+                transform: translateX(0) scaleY(1);
+            }
+
+            50% {
+                transform: translateX(-5px) scaleY(1.1);
+            }
+
+            100% {
+                transform: translateX(0) scaleY(1);
+            }
+        }
+
+        .survive-svg {
+            width: 64px;
+            height: 64px;
+            fill: var(--survive);
+            animation: floatSurvive 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 12px rgba(45, 212, 160, 0.4));
+        }
+
+        .perish-svg {
+            width: 64px;
+            height: 64px;
+            fill: var(--perish);
+            animation: waveMotion 4s ease-in-out infinite;
+            filter: drop-shadow(0 0 12px rgba(224, 92, 92, 0.4));
+        }
+
+        .result-label {
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .result-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .survived .result-value {
+            color: var(--survive);
+        }
+
+        .perished .result-value {
+            color: var(--perish);
+        }
+
+        /* Progress bar */
+        .prob-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .prob-bar-track {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 100px;
+            height: 6px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .prob-bar-fill {
+            height: 100%;
+            border-radius: 100px;
+            transition: width 1s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .survived .prob-bar-fill {
+            background: var(--survive);
+        }
+
+        .perished .prob-bar-fill {
+            background: var(--perish);
+        }
+
+        .prob-value {
+            font-size: 20px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        /* Nav badges */
+        .nav-badges {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(201, 168, 76, 0.1);
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            border-radius: 100px;
+            padding: 5px 14px;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent2);
+        }
+
+        .badge-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(52, 200, 160, 0.08);
+            border: 1px solid rgba(52, 200, 160, 0.25);
+            border-radius: 100px;
+            padding: 5px 14px;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #6ee7c7;
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .badge-link:hover {
+            background: rgba(52, 200, 160, 0.15);
+            border-color: rgba(52, 200, 160, 0.5);
+        }
+
+        .badge-link svg, .badge svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        /* Footer note */
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 0.04em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="header">
+            <div class="nav-badges">
+                <div class="badge">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12,2C10.89,2 10,2.89 10,4C10,5.11 10.89,6 12,6C13.11,6 14,5.11 14,4C14,2.89 13.11,2 12,2M12,7C11.45,7 11,7.45 11,8V12L6.5,10.5L5.5,12.23L11,14.07V18C8.76,18 6.9,19.81 6.9,22H8.9C8.9,20.29 10.29,18.9 12,18.9C13.71,18.9 15.1,20.29 15.1,22H17.1C17.1,19.81 15.24,18 13,18V14.07L18.5,12.23L17.5,10.5L13,12V8C13,7.45 12.55,7 12,7Z" />
+                    </svg>
+                    Análisis Predictivo · ML
+                </div>
+                <a href="/diabetes" class="badge-link">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M13,17H11V13H7V11H11V7H13V11H17V13H13V17Z"/>
+                    </svg>
+                    Sistema Experto · Diagnóstico Clínico
+                </a>
+            </div>
+            <h1>Supervivencia en el <span>Titanic</span></h1>
+            <div class="divider"><span class="divider-icon">✦</span></div>
+            <p class="subtitle">Ingresa los datos del pasajero para obtener una predicción basada en el modelo de
+                machine learning entrenado con el dataset histórico.</p>
+        </div>
+
+        <div class="card">
+            <form action="/predecir" method="POST">
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label><svg class="svg-icon" viewBox="0 0 24 24">
+                                <path
+                                    d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,17V18H13V17H14A2,2 0 0,0 16,15A2,2 0 0,0 14,13H11V11H15V9H13V8H11V9H10A2,2 0 0,0 8,11A2,2 0 0,0 10,13H13V15H9V17H11Z" />
+                            </svg>Tarifa (Fare)</label>
+                        <input type="number" step="0.01" min="0" name="fare" required placeholder="Ej: 83.50"
+                            value="{{ request.form.get('fare', '') }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label><svg class="svg-icon" viewBox="0 0 24 24">
+                                <path
+                                    d="M15.5,17L14,15.5L15.5,14L14,12.5L15.5,11L14,9.5L15.5,8L14,6.5L15.5,5H4V7.5A1.5,1.5 0 0,1 2.5,9A1.5,1.5 0 0,1 4,10.5V13H20V10.5A1.5,1.5 0 0,1 18.5,9A1.5,1.5 0 0,1 20,7.5V5H18.5L17,6.5L18.5,8L17,9.5L18.5,11L17,12.5L18.5,14L17,15.5L18.5,17H15.5Z" />
+                            </svg>Clase (Pclass)</label>
+                        <div class="select-wrapper">
+                            <select name="pclass">
+                                <option value="1" {% if request.form.get('pclass')=='1' %}selected{% endif %}>Primera
+                                    Clase (1)</option>
+                                <option value="2" {% if request.form.get('pclass')=='2' %}selected{% endif %}>Segunda
+                                    Clase (2)</option>
+                                <option value="3" {% if request.form.get('pclass')=='3' %}selected{% endif %}>Tercera
+                                    Clase (3)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><svg class="svg-icon" viewBox="0 0 24 24">
+                                <path
+                                    d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+                            </svg>Género</label>
+                        <div class="select-wrapper">
+                            <select name="gender">
+                                <option value="1" {% if request.form.get('gender')=='1' %}selected{% endif %}>Femenino
+                                    (1)</option>
+                                <option value="0" {% if request.form.get('gender')=='0' %}selected{% endif %}>Masculino
+                                    (0)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><svg class="svg-icon" viewBox="0 0 24 24">
+                                <path
+                                    d="M19,4H18V2H16V4H8V2H6V4H5C3.89,4 3,4.9 3,6V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V6A2,2 0 0,0 19,4M19,20H5V10H19V20M19,8H5V6H19V8Z" />
+                            </svg>Edad (Age)</label>
+                        <input type="number" min="0" name="age" required placeholder="Ej: 35"
+                            value="{{ request.form.get('age', '') }}">
+                    </div>
+
+                    <div class="form-group full">
+                        <label><svg class="svg-icon" viewBox="0 0 24 24">
+                                <path
+                                    d="M16,11C17.66,11 18.99,9.66 18.99,8C18.99,6.34 17.66,5 16,5C14.34,5 13,6.34 13,8C13,9.66 14.34,11 16,11M8,11C9.66,11 10.99,9.66 10.99,8C10.99,6.34 9.66,5 8,5C6.34,5 5,6.34 5,8C5,9.66 6.34,11 8,11M8,13C5.67,13 1,14.17 1,16.5V19H15V16.5C15,14.17 10.33,13 8,13M16,13C15.71,13 15.38,13.04 15.03,13.11C16.19,13.89 17,15.06 17,16.5V19H23V16.5C23,14.17 18.33,13 16,13Z" />
+                            </svg>Familiares a bordo (SibSp)</label>
+                        <input type="number" min="0" name="sibsp" required placeholder="Ej: 1"
+                            value="{{ request.form.get('sibsp', '') }}">
+                    </div>
+
+                    <button type="submit" class="btn"><svg class="btn-icon" viewBox="0 0 24 24">
+                            <path
+                                d="M12,2C10.89,2 10,2.89 10,4C10,5.11 10.89,6 12,6C13.11,6 14,5.11 14,4C14,2.89 13.11,2 12,2M12,7C11.45,7 11,7.45 11,8V12L6.5,10.5L5.5,12.23L11,14.07V18C8.76,18 6.9,19.81 6.9,22H8.9C8.9,20.29 10.29,18.9 12,18.9C13.71,18.9 15.1,20.29 15.1,22H17.1C17.1,19.81 15.24,18 13,18V14.07L18.5,12.23L17.5,10.5L13,12V8C13,7.45 12.55,7 12,7Z" />
+                        </svg>Hacer Predicción</button>
+
+                </div>
+            </form>
+
+            {% if resultado %}
+            <div
+                class="resultado {% if 'sobrevive' in resultado|lower or 'survive' in resultado|lower %}survived{% else %}perished{% endif %}">
+                <div class="result-icon">
+                    {% if 'sobrevive' in resultado|lower or 'survive' in resultado|lower %}
+                    <svg class="survive-svg" viewBox="0 0 24 24">
+                        <path
+                            d="M12,2C17.52,2 22,6.48 22,12C22,17.52 17.52,22 12,22C6.48,22 2,17.52 2,12C2,6.48 6.48,2 12,2M12,4C9.56,4 7.37,5.08 5.86,6.79L8.76,9.69C9.54,9.04 10.7,8.6 12,8.6C13.3,8.6 14.46,9.04 15.24,9.69L18.14,6.79C16.63,5.08 14.44,4 12,4M4,12C4,14.44 5.08,16.63 6.79,18.14L9.69,15.24C9.04,14.46 8.6,13.3 8.6,12C8.6,10.7 9.04,9.54 9.69,8.76L6.79,5.86C5.08,7.37 4,9.56 4,12M12,20C14.44,20 16.63,18.92 18.14,17.21L15.24,14.31C14.46,14.96 13.3,15.4 12,15.4C10.7,15.4 9.54,14.96 8.76,14.31L5.86,17.21C7.37,18.92 9.56,20 12,20M20,12C20,9.56 18.92,7.37 17.21,5.86L14.31,8.76C14.96,9.54 15.4,10.7 15.4,12C15.4,13.3 14.96,14.46 14.31,15.24L17.21,18.14C18.92,16.63 20,14.44 20,12M12,10.4A1.6,1.6 0 0,0 10.4,12A1.6,1.6 0 0,0 12,13.6A1.6,1.6 0 0,0 13.6,12A1.6,1.6 0 0,0 12,10.4Z" />
+                    </svg>
+                    {% else %}
+                    <svg class="perish-svg" viewBox="0 0 24 24">
+                        <path
+                            d="M22,12C22,10.89 21.1,10 20,10C18.89,10 18,10.89 18,12C18,13.1 17.1,14 16,14C14.89,14 14,13.1 14,12C14,10.89 13.1,10 12,10C10.89,10 10,10.89 10,12C10,13.1 9.1,14 8,14C6.89,14 6,13.1 6,12C6,10.89 5.1,10 4,10C2.89,10 2,10.89 2,12V20H22V12M22,6C22,4.89 21.1,4 20,4C18.89,4 18,4.89 18,6C18,7.1 17.1,8 16,8C14.89,8 14,7.1 14,6C14,4.89 13.1,4 12,4C10.89,4 10,4.89 10,6C10,7.1 9.1,8 8,8C6.89,8 6,7.1 6,6C6,4.89 5.1,4 4,4C2.89,4 2,4.89 2,6V9C3.15,9 4.13,9.58 4.75,10.38C5.37,9.58 6.35,9 7.5,9C8.65,9 9.63,9.58 10.25,10.38C10.87,9.58 11.85,9 13,9C14.15,9 15.13,9.58 15.75,10.38C16.37,9.58 17.35,9 18.5,9C19.65,9 20.63,9.58 21.25,10.38C21.87,9.58 22.85,9 24,9V6H22Z" />
+                    </svg>
+                    {% endif %}
+                </div>
+                <p class="result-label">Resultado de la predicción</p>
+                <p class="result-value">{{ resultado }}</p>
+                <p class="prob-label">Probabilidad de supervivencia</p>
+                <div class="prob-bar-track">
+                    <div class="prob-bar-fill" style="width: {{ probabilidad | round(2) }}%"></div>
+                </div>
+                <p class="prob-value">{{ probabilidad | round(2) }}%</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <p class="footer-note">Modelo entrenado con datos históricos del RMS Titanic · 1912</p>
+
+    </div>
+</body>
+
+</html>
