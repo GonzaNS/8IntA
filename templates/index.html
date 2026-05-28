@@ -501,6 +501,86 @@
             color: var(--muted);
             letter-spacing: 0.04em;
         }
+
+        /* ── Model Selector ─────────────────────────────── */
+        .model-selector-label {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .model-toggle {
+            display: flex;
+            gap: 10px;
+        }
+
+        .model-toggle input[type="radio"] {
+            display: none;
+        }
+
+        .model-toggle label {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-transform: none;
+            color: var(--muted);
+            transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+
+        .model-toggle label svg {
+            width: 15px;
+            height: 15px;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+
+        .model-toggle input[type="radio"]:checked + label {
+            border-color: var(--accent);
+            color: var(--accent2);
+            background: rgba(201, 168, 76, 0.1);
+            box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.08);
+        }
+
+        .model-toggle label:hover {
+            border-color: rgba(201, 168, 76, 0.5);
+            color: var(--text);
+        }
+
+        /* ── Model badge in result ───────────────────────── */
+        .model-used-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 100px;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--muted);
+        }
+
+        .model-used-badge svg {
+            width: 11px;
+            height: 11px;
+            fill: currentColor;
+        }
     </style>
 </head>
 
@@ -591,6 +671,45 @@
                             value="{{ request.form.get('sibsp', '') }}">
                     </div>
 
+                    <!-- ── Selector de Modelo ─────────────────────────── -->
+                    <div class="form-group full">
+                        <span class="model-selector-label">
+                            <svg class="svg-icon" viewBox="0 0 24 24" style="width:13px;height:13px;margin-right:4px;">
+                                <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21A7,7 0 0,1 14,26H10A7,7 0 0,1 3,19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z" />
+                            </svg>
+                            Modelo de predicción
+                        </span>
+                        <div class="model-toggle">
+                            <input
+                                type="radio"
+                                id="modelo_rn"
+                                name="modelo"
+                                value="red_neuronal"
+                                {% if request.form.get('modelo', 'red_neuronal') == 'red_neuronal' %}checked{% endif %}>
+                            <label for="modelo_rn">
+                                <!-- Ícono de red neuronal (nodos conectados) -->
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21A7,7 0 0,1 14,26H10A7,7 0 0,1 3,19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2Z" />
+                                </svg>
+                                Red Neuronal
+                            </label>
+                            <input
+                                type="radio"
+                                id="modelo_dt"
+                                name="modelo"
+                                value="arbol_decision"
+                                {% if request.form.get('modelo') == 'arbol_decision' %}checked{% endif %}>
+                            <label for="modelo_dt">
+                                <!-- Ícono de árbol de decisión -->
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M17,12V3A1,1 0 0,0 16,2H3A1,1 0 0,0 2,3V12A1,1 0 0,0 3,13H7V15H5V17H7V19H9V17H11V15H9V13H16A1,1 0 0,0 17,12M15,11H4V4H15V11M22,15V13H19V10H17V13H14V15H17V22H19V15H22Z" />
+                                </svg>
+                                Árbol de Decisión
+                            </label>
+                        </div>
+                    </div>
+                    <!-- ─────────────────────────────────────────────────── -->
+
                     <button type="submit" class="btn"><svg class="btn-icon" viewBox="0 0 24 24">
                             <path
                                 d="M12,2C10.89,2 10,2.89 10,4C10,5.11 10.89,6 12,6C13.11,6 14,5.11 14,4C14,2.89 13.11,2 12,2M12,7C11.45,7 11,7.45 11,8V12L6.5,10.5L5.5,12.23L11,14.07V18C8.76,18 6.9,19.81 6.9,22H8.9C8.9,20.29 10.29,18.9 12,18.9C13.71,18.9 15.1,20.29 15.1,22H17.1C17.1,19.81 15.24,18 13,18V14.07L18.5,12.23L17.5,10.5L13,12V8C13,7.45 12.55,7 12,7Z" />
@@ -615,6 +734,16 @@
                     </svg>
                     {% endif %}
                 </div>
+                <!-- Badge que indica qué modelo realizó la predicción -->
+                <div class="model-used-badge">
+                    {% if modelo_usado == 'arbol_decision' %}
+                    <svg viewBox="0 0 24 24"><path d="M17,12V3A1,1 0 0,0 16,2H3A1,1 0 0,0 2,3V12A1,1 0 0,0 3,13H7V15H5V17H7V19H9V17H11V15H9V13H16A1,1 0 0,0 17,12M15,11H4V4H15V11M22,15V13H19V10H17V13H14V15H17V22H19V15H22Z" /></svg>
+                    Árbol de Decisión
+                    {% else %}
+                    <svg viewBox="0 0 24 24"><path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21A7,7 0 0,1 14,26H10A7,7 0 0,1 3,19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2Z" /></svg>
+                    Red Neuronal
+                    {% endif %}
+                </div>
                 <p class="result-label">Resultado de la predicción</p>
                 <p class="result-value">{{ resultado }}</p>
                 <p class="prob-label">Probabilidad de supervivencia</p>
@@ -626,7 +755,7 @@
             {% endif %}
         </div>
 
-        <p class="footer-note">Modelo entrenado con datos históricos del RMS Titanic · 1912</p>
+        <p class="footer-note">Modelos entrenados con datos históricos del RMS Titanic · 1912 &nbsp;·&nbsp; Red Neuronal (Keras) &amp; Árbol de Decisión (scikit-learn)</p>
 
     </div>
 </body>

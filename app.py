@@ -8,11 +8,30 @@ from diabetes_expert import diagnosticar, SINTOMAS, REGLAS_PROLOG
 
 app = Flask(__name__)
 
-# 1. Cargamos el modelo y el scaler en la memoria al encender el servidor
-print("Cargando modelo y scaler...")
-model = load_model("mimodelo_completo.h5")
+# ──────────────────────────────────────────────────────────────────
+# 1. Cargamos los modelos y el scaler en la memoria al encender el servidor
+# ──────────────────────────────────────────────────────────────────
+
+# ▶ Red Neuronal (modelo original — intacto)
+print("Cargando Red Neuronal y scaler...")
+nn_model = load_model("mimodelo_completo.h5")
 scaler = joblib.load("mi_scaler.pkl")
-print("Listo para recibir peticiones.")
+print("Red Neuronal lista.")
+
+# ▶ Árbol de Decisión (se carga si el .pkl ya fue generado)
+import os as _os
+DT_MODEL_PATH = "modelo_dt_titanic.pkl"
+if _os.path.exists(DT_MODEL_PATH):
+    dt_model = joblib.load(DT_MODEL_PATH)
+    print("Árbol de Decisión cargado.")
+else:
+    dt_model = None
+    print(
+        "AVISO: 'modelo_dt_titanic.pkl' no encontrado. "
+        "Ejecuta 'Titanic_DT_Local.py' para generarlo antes de usar el Árbol de Decisión."
+    )
+
+print("Servidor listo para recibir peticiones.")
 
 # 2. Ruta principal: Solo muestra la página web vacía
 
@@ -34,22 +53,46 @@ def predecir():
         age = float(request.form["age"])
         sibsp = int(request.form["sibsp"])
 
-        # ORDEN ESTRICTO: Debe ser el mismo con el que entrenaste el modelo
+        # Modelo elegido por el usuario (por defecto: Red Neuronal)
+        modelo_elegido = request.form.get("modelo", "red_neuronal")
+
+        # ORDEN ESTRICTO: Debe ser el mismo con el que se entrenó cada modelo
         # columns = ["Fare", "Pclass", "Gender", "Age", "SibSp"]
         datos_entrada = np.array([[fare, pclass, gender, age, sibsp]])
 
-        # Transformar los datos con el Scaler
-        datos_escalados = scaler.transform(datos_entrada)
+        # ── Rama 1: Red Neuronal ──────────────────────────────────────────────
+        if modelo_elegido == "red_neuronal":
+            datos_escalados = scaler.transform(datos_entrada)
+            prediccion = nn_model.predict(datos_escalados)
+            probabilidad = float(prediccion[0][0]) * 100  # ya en porcentaje
+            estado = "Sobrevive" if probabilidad >= 50 else "Fallece"
 
-        # Realizar la predicción
-        prediccion = model.predict(datos_escalados)
-        probabilidad = float(prediccion[0][0])  # Obtener el número decimal
+        # ── Rama 2: Árbol de Decisión ────────────────────────────────────────
+        elif modelo_elegido == "arbol_decision":
+            if dt_model is None:
+                # El .pkl aún no ha sido generado
+                return render_template(
+                    "index.html",
+                    resultado="Error: entrena el Árbol de Decisión primero (ejecuta Titanic_DT_Local.py)",
+                    probabilidad=0.0,
+                    modelo_usado=modelo_elegido,
+                )
+            # El Árbol de Decisión NO necesita scaler
+            proba = dt_model.predict_proba(datos_entrada)[0]  # [prob_fallece, prob_sobrevive]
+            probabilidad = float(proba[1]) * 100  # % de sobrevivir
+            estado = "Sobrevive" if probabilidad >= 50 else "Fallece"
 
-        # Lógica de respuesta
-        estado = "Sobrevive" if probabilidad >= 0.5 else "Fallece"
+        else:
+            estado = "Modelo desconocido"
+            probabilidad = 0.0
 
-        # Volvemos a cargar index.html, pero ahora pasándole las variables de respuesta
-        return render_template("index.html", resultado=estado, probabilidad=probabilidad*100)
+        # Volvemos a cargar index.html con las variables de respuesta
+        return render_template(
+            "index.html",
+            resultado=estado,
+            probabilidad=probabilidad,
+            modelo_usado=modelo_elegido,
+        )
 
 
 # ══════════════════════════════════════════════════════════════
