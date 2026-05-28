@@ -18,17 +18,48 @@ nn_model = load_model("mimodelo_completo.h5")
 scaler = joblib.load("mi_scaler.pkl")
 print("Red Neuronal lista.")
 
-# ▶ Árbol de Decisión (se carga si el .pkl ya fue generado)
+# ▶ Árbol de Decisión Titanic (se carga si el .pkl ya fue generado)
 import os as _os
 DT_MODEL_PATH = "modelo_dt_titanic.pkl"
 if _os.path.exists(DT_MODEL_PATH):
     dt_model = joblib.load(DT_MODEL_PATH)
-    print("Árbol de Decisión cargado.")
+    print("Árbol de Decisión Titanic cargado.")
 else:
     dt_model = None
     print(
         "AVISO: 'modelo_dt_titanic.pkl' no encontrado. "
         "Ejecuta 'Titanic_DT_Local.py' para generarlo antes de usar el Árbol de Decisión."
+    )
+
+# ══════════════════════════════════════════════════════════════
+#  MODELOS DE ANEMIA
+# ══════════════════════════════════════════════════════════════
+
+# ▶ Red Neuronal — Anemia
+ANEMIA_RN_PATH     = "anemia_modelo_rn.h5"
+ANEMIA_SCALER_PATH = "anemia_scaler.pkl"
+if _os.path.exists(ANEMIA_RN_PATH) and _os.path.exists(ANEMIA_SCALER_PATH):
+    anemia_nn_model = load_model(ANEMIA_RN_PATH)
+    anemia_scaler   = joblib.load(ANEMIA_SCALER_PATH)
+    print("Red Neuronal de Anemia cargada.")
+else:
+    anemia_nn_model = None
+    anemia_scaler   = None
+    print(
+        "AVISO: Modelos de anemia no encontrados. "
+        "Ejecuta 'Anemia_RN_Local.py' para generarlos."
+    )
+
+# ▶ Árbol de Decisión — Anemia
+ANEMIA_DT_PATH = "anemia_modelo_dt.pkl"
+if _os.path.exists(ANEMIA_DT_PATH):
+    anemia_dt_model = joblib.load(ANEMIA_DT_PATH)
+    print("Árbol de Decisión de Anemia cargado.")
+else:
+    anemia_dt_model = None
+    print(
+        "AVISO: 'anemia_modelo_dt.pkl' no encontrado. "
+        "Ejecuta 'Anemia_DT_Local.py' para generarlo."
     )
 
 print("Servidor listo para recibir peticiones.")
@@ -89,6 +120,72 @@ def predecir():
         # Volvemos a cargar index.html con las variables de respuesta
         return render_template(
             "index.html",
+            resultado=estado,
+            probabilidad=probabilidad,
+            modelo_usado=modelo_elegido,
+        )
+
+
+# ══════════════════════════════════════════════════════════════
+#  ANÁLISIS PREDICTIVO — ANEMIA
+# ══════════════════════════════════════════════════════════════
+
+# 6. Ruta principal de anemia: muestra el formulario vacío
+@app.route("/anemia")
+def anemia_form():
+    return render_template("anemia.html")
+
+
+# 7. Ruta de predicción de anemia
+@app.route("/anemia/predecir", methods=["POST"])
+def anemia_predecir():
+    if request.method == "POST":
+        # Extraer datos del formulario
+        gender     = int(request.form["gender"])
+        hemoglobin = float(request.form["hemoglobin"])
+        mch        = float(request.form["mch"])
+        mchc       = float(request.form["mchc"])
+        mcv        = float(request.form["mcv"])
+
+        # Modelo elegido por el usuario
+        modelo_elegido = request.form.get("modelo", "red_neuronal")
+
+        # ORDEN ESTRICTO: ["Gender", "Hemoglobin", "MCH", "MCHC", "MCV"]
+        datos_entrada = np.array([[gender, hemoglobin, mch, mchc, mcv]])
+
+        # ── Rama 1: Red Neuronal ─────────────────────────────────────────
+        if modelo_elegido == "red_neuronal":
+            if anemia_nn_model is None or anemia_scaler is None:
+                return render_template(
+                    "anemia.html",
+                    resultado="Error: ejecuta Anemia_RN_Local.py para generar los modelos.",
+                    probabilidad=0.0,
+                    modelo_usado=modelo_elegido,
+                )
+            datos_escalados = anemia_scaler.transform(datos_entrada)
+            prediccion  = anemia_nn_model.predict(datos_escalados)
+            probabilidad = float(prediccion[0][0]) * 100
+            estado = "Anémico" if probabilidad >= 50 else "No anémico"
+
+        # ── Rama 2: Árbol de Decisión ────────────────────────────────────
+        elif modelo_elegido == "arbol_decision":
+            if anemia_dt_model is None:
+                return render_template(
+                    "anemia.html",
+                    resultado="Error: ejecuta Anemia_DT_Local.py para generar el modelo.",
+                    probabilidad=0.0,
+                    modelo_usado=modelo_elegido,
+                )
+            proba = anemia_dt_model.predict_proba(datos_entrada)[0]  # [prob_no, prob_anemia]
+            probabilidad = float(proba[1]) * 100
+            estado = "Anémico" if probabilidad >= 50 else "No anémico"
+
+        else:
+            estado = "Modelo desconocido"
+            probabilidad = 0.0
+
+        return render_template(
+            "anemia.html",
             resultado=estado,
             probabilidad=probabilidad,
             modelo_usado=modelo_elegido,

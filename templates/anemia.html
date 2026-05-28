@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detección de Anemia · Análisis Predictivo ML</title>
+    <meta name="description" content="Predicción de anemia mediante Machine Learning usando datos hematológicos como hemoglobina, MCH, MCHC y MCV.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg:        #080f1a;
+            --deep:      #0b1422;
+            --panel:     #0e1c30;
+            --border:    #172840;
+            --accent:    #3b9eff;
+            --accent2:   #7ec8ff;
+            --text:      #c8daf4;
+            --muted:     #4d6a8a;
+            --input-bg:  #091525;
+            --positive:  #2dd4a0;  /* No anémico */
+            --negative:  #e05c5c;  /* Anémico     */
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Grid pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(59,158,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,158,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        /* Glowing orb */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -180px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px;
+            height: 420px;
+            background: radial-gradient(ellipse, rgba(59,158,255,0.07) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 560px;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Header ──────────────────────────────────────────── */
+        .header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .nav-badges {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(59,158,255,0.1);
+            border: 1px solid rgba(59,158,255,0.3);
+            border-radius: 100px;
+            padding: 5px 14px;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent2);
+        }
+
+        .badge svg, .badge-link svg {
+            width: 13px;
+            height: 13px;
+            fill: currentColor;
+        }
+
+        .badge-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(201,168,76,0.07);
+            border: 1px solid rgba(201,168,76,0.25);
+            border-radius: 100px;
+            padding: 5px 14px;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #e8c97a;
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .badge-link:hover {
+            background: rgba(201,168,76,0.14);
+            border-color: rgba(201,168,76,0.5);
+        }
+
+        .badge-link-teal {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(45,212,160,0.07);
+            border: 1px solid rgba(45,212,160,0.25);
+            border-radius: 100px;
+            padding: 5px 14px;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #7ee8c7;
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .badge-link-teal:hover {
+            background: rgba(45,212,160,0.14);
+            border-color: rgba(45,212,160,0.5);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(26px, 5vw, 34px);
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.15;
+            margin-bottom: 10px;
+        }
+
+        h1 span { color: var(--accent); }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0 16px;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .divider-icon { color: var(--accent); font-size: 16px; }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.65;
+            font-weight: 300;
+        }
+
+        /* ── Info pills ──────────────────────────────────────── */
+        .info-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 14px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 100px;
+            padding: 3px 10px;
+        }
+
+        .pill-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--accent);
+            flex-shrink: 0;
+        }
+
+        /* ── Card ────────────────────────────────────────────── */
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        /* ── Form ────────────────────────────────────────────── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .form-group.full { grid-column: 1 / -1; }
+
+        label {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .svg-icon {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+
+        input, select {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 10px 13px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        input::placeholder { color: #22405a; }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59,158,255,0.12);
+        }
+
+        .select-wrapper { position: relative; }
+
+        .select-wrapper::after {
+            content: '▾';
+            position: absolute;
+            right: 13px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            pointer-events: none;
+            font-size: 12px;
+        }
+
+        select option { background: var(--deep); }
+
+        /* ── Reference ranges hint ───────────────────────────── */
+        .hint {
+            font-size: 10px;
+            color: #2a4a68;
+            margin-top: 3px;
+            letter-spacing: 0.03em;
+        }
+
+        /* ── Model selector ──────────────────────────────────── */
+        .model-selector-label {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .model-toggle { display: flex; gap: 10px; }
+
+        .model-toggle input[type="radio"] { display: none; }
+
+        .model-toggle label {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-transform: none;
+            color: var(--muted);
+            transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+
+        .model-toggle label svg {
+            width: 15px; height: 15px;
+            fill: currentColor; flex-shrink: 0;
+        }
+
+        .model-toggle input[type="radio"]:checked + label {
+            border-color: var(--accent);
+            color: var(--accent2);
+            background: rgba(59,158,255,0.1);
+            box-shadow: 0 0 0 3px rgba(59,158,255,0.08);
+        }
+
+        .model-toggle label:hover {
+            border-color: rgba(59,158,255,0.5);
+            color: var(--text);
+        }
+
+        /* ── Submit button ───────────────────────────────────── */
+        .btn {
+            grid-column: 1 / -1;
+            margin-top: 6px;
+            padding: 14px;
+            background: linear-gradient(135deg, #1a6fd4, var(--accent), var(--accent2));
+            background-size: 200% 200%;
+            border: none;
+            border-radius: 10px;
+            color: #04101e;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-position 0.4s, transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(59,158,255,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+        .btn:hover {
+            background-position: right center;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 28px rgba(59,158,255,0.35);
+        }
+
+        .btn:active { transform: translateY(0); }
+
+        /* ── Result ──────────────────────────────────────────── */
+        .resultado {
+            margin-top: 22px;
+            border-radius: 12px;
+            padding: 22px 24px;
+            text-align: center;
+            border: 1px solid;
+            animation: fadeUp 0.4s ease both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .resultado.healthy {
+            background: rgba(45,212,160,0.07);
+            border-color: rgba(45,212,160,0.3);
+        }
+
+        .resultado.anemic {
+            background: rgba(224,92,92,0.07);
+            border-color: rgba(224,92,92,0.3);
+        }
+
+        .resultado::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+        }
+
+        .resultado.healthy::before { background: var(--positive); }
+        .resultado.anemic::before  { background: var(--negative); }
+
+        /* Icons */
+        .result-icon {
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: center;
+        }
+
+        @keyframes pulse-healthy {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(45,212,160,0.4)); }
+            50%       { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(45,212,160,0.7)); }
+        }
+
+        @keyframes shake-anemic {
+            0%, 100% { transform: translateX(0); }
+            20%       { transform: translateX(-4px); }
+            40%       { transform: translateX(4px); }
+            60%       { transform: translateX(-3px); }
+            80%       { transform: translateX(3px); }
+        }
+
+        .healthy-svg {
+            width: 64px; height: 64px;
+            fill: var(--positive);
+            animation: pulse-healthy 3s ease-in-out infinite;
+        }
+
+        .anemic-svg {
+            width: 64px; height: 64px;
+            fill: var(--negative);
+            animation: shake-anemic 2.5s ease-in-out infinite;
+        }
+
+        /* Model badge */
+        .model-used-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 100px;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--muted);
+        }
+
+        .model-used-badge svg { width: 11px; height: 11px; fill: currentColor; }
+
+        .result-label {
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .result-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .healthy .result-value { color: var(--positive); }
+        .anemic  .result-value { color: var(--negative); }
+
+        /* Progress bar */
+        .prob-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .prob-bar-track {
+            background: rgba(255,255,255,0.06);
+            border-radius: 100px;
+            height: 6px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .prob-bar-fill {
+            height: 100%;
+            border-radius: 100px;
+            transition: width 1s cubic-bezier(.4,0,.2,1);
+        }
+
+        .healthy .prob-bar-fill { background: var(--positive); }
+        .anemic  .prob-bar-fill { background: var(--negative); }
+
+        .prob-value {
+            font-size: 20px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        /* ── Footer ──────────────────────────────────────────── */
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 0.04em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="nav-badges">
+                <div class="badge">
+                    <!-- Ícono sangre / laboratorio -->
+                    <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12C22,6.47 17.5,2 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M16.5,7.5C16.5,10.58 14.5,14 12,14C9.5,14 7.5,10.58 7.5,7.5C7.5,6.5 8.5,5.5 9.5,6L12,7.5L14.5,6C15.5,5.5 16.5,6.5 16.5,7.5Z"/></svg>
+                    Hematología · ML
+                </div>
+                <a href="/" class="badge-link">
+                    <svg viewBox="0 0 24 24"><path d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L6.04,7.5L12,10.85L17.96,7.5L12,4.15Z"/></svg>
+                    Titanic · Supervivencia
+                </a>
+                <a href="/diabetes" class="badge-link-teal">
+                    <svg viewBox="0 0 24 24"><path d="M19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M13,17H11V13H7V11H11V7H13V11H17V13H13V17Z"/></svg>
+                    Diabetes · S. Experto
+                </a>
+            </div>
+
+            <h1>Detección de <span>Anemia</span></h1>
+            <div class="divider"><span class="divider-icon">✦</span></div>
+            <p class="subtitle">Ingresa los parámetros hematológicos del paciente para obtener una predicción
+                basada en modelos de Machine Learning entrenados con datos clínicos reales.</p>
+
+            <div class="info-pills">
+                <span class="pill"><span class="pill-dot"></span>Hemoglobina</span>
+                <span class="pill"><span class="pill-dot"></span>MCH</span>
+                <span class="pill"><span class="pill-dot"></span>MCHC</span>
+                <span class="pill"><span class="pill-dot"></span>MCV</span>
+            </div>
+        </div>
+
+        <!-- Form card -->
+        <div class="card">
+            <form action="/anemia/predecir" method="POST">
+                <div class="form-grid">
+
+                    <!-- Género -->
+                    <div class="form-group">
+                        <label>
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+                            Género
+                        </label>
+                        <div class="select-wrapper">
+                            <select name="gender" id="gender">
+                                <option value="1" {% if request.form.get('gender')=='1' %}selected{% endif %}>Femenino (1)</option>
+                                <option value="0" {% if request.form.get('gender')=='0' %}selected{% endif %}>Masculino (0)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Hemoglobina -->
+                    <div class="form-group">
+                        <label>
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M16.5,7.5C16.5,10.58 14.5,14 12,14C9.5,14 7.5,10.58 7.5,7.5C7.5,6.5 8.5,5.5 9.5,6L12,7.5L14.5,6C15.5,5.5 16.5,6.5 16.5,7.5Z M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12C22,6.47 17.5,2 12,2Z"/></svg>
+                            Hemoglobin (g/dL)
+                        </label>
+                        <input type="number" step="0.1" min="0" max="25" name="hemoglobin" id="hemoglobin"
+                               required placeholder="Ej: 12.5"
+                               value="{{ request.form.get('hemoglobin', '') }}">
+                        <span class="hint">Normal: ♀ 12–16 · ♂ 13.5–17.5 g/dL</span>
+                    </div>
+
+                    <!-- MCH -->
+                    <div class="form-group">
+                        <label>
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9,3V4H4V6H5V20A2,2 0 0,0 7,22H17A2,2 0 0,0 19,20V6H20V4H15V3H9M7,6H17V20H7V6M9,8V18H11V8H9M13,8V18H15V8H13Z"/></svg>
+                            MCH (pg)
+                        </label>
+                        <input type="number" step="0.1" min="0" max="50" name="mch" id="mch"
+                               required placeholder="Ej: 22.5"
+                               value="{{ request.form.get('mch', '') }}">
+                        <span class="hint">Normal: 27–33 pg</span>
+                    </div>
+
+                    <!-- MCHC -->
+                    <div class="form-group">
+                        <label>
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/></svg>
+                            MCHC (g/dL)
+                        </label>
+                        <input type="number" step="0.1" min="0" max="50" name="mchc" id="mchc"
+                               required placeholder="Ej: 30.5"
+                               value="{{ request.form.get('mchc', '') }}">
+                        <span class="hint">Normal: 32–36 g/dL</span>
+                    </div>
+
+                    <!-- MCV -->
+                    <div class="form-group full">
+                        <label>
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6Z"/></svg>
+                            MCV (fL)
+                        </label>
+                        <input type="number" step="0.1" min="0" max="150" name="mcv" id="mcv"
+                               required placeholder="Ej: 82.0"
+                               value="{{ request.form.get('mcv', '') }}">
+                        <span class="hint">Normal: 80–100 fL</span>
+                    </div>
+
+                    <!-- ── Selector de Modelo ───────────────────────────── -->
+                    <div class="form-group full">
+                        <span class="model-selector-label">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21A7,7 0 0,1 14,26H10A7,7 0 0,1 3,19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z"/></svg>
+                            Modelo de predicción
+                        </span>
+                        <div class="model-toggle">
+                            <input type="radio" id="modelo_rn" name="modelo" value="red_neuronal"
+                                {% if request.form.get('modelo', 'red_neuronal') == 'red_neuronal' %}checked{% endif %}>
+                            <label for="modelo_rn">
+                                <svg viewBox="0 0 24 24"><path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21A7,7 0 0,1 14,26H10A7,7 0 0,1 3,19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2Z"/></svg>
+                                Red Neuronal
+                            </label>
+                            <input type="radio" id="modelo_dt" name="modelo" value="arbol_decision"
+                                {% if request.form.get('modelo') == 'arbol_decision' %}checked{% endif %}>
+                            <label for="modelo_dt">
+                                <svg viewBox="0 0 24 24"><path d="M17,12V3A1,1 0 0,0 16,2H3A1,1 0 0,0 2,3V12A1,1 0 0,0 3,13H7V15H5V17H7V19H9V17H11V15H9V13H16A1,1 0 0,0 17,12M15,11H4V4H15V11M22,15V13H19V10H17V13H14V15H17V22H19V15H22Z"/></svg>
+                                Árbol de Decisión
+                            </label>
+                        </div>
+                    </div>
+                    <!-- ──────────────────────────────────────────────────── -->
+
+                    <button type="submit" class="btn" id="btn-predecir">
+                        <svg viewBox="0 0 24 24"><path d="M9,3L5,7H8V14H10V7H13M16,17V10H14V17H11L15,21L19,17H16Z"/></svg>
+                        Analizar Muestra
+                    </button>
+
+                </div>
+            </form>
+
+            <!-- ── Resultado ────────────────────────────────────── -->
+            {% if resultado %}
+            <div class="resultado {% if 'no' in resultado|lower %}healthy{% else %}anemic{% endif %}">
+
+                <div class="result-icon">
+                    {% if 'no' in resultado|lower %}
+                    <!-- Ícono check / corazón sano -->
+                    <svg class="healthy-svg" viewBox="0 0 24 24">
+                        <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"/>
+                    </svg>
+                    {% else %}
+                    <!-- Ícono alerta médica -->
+                    <svg class="anemic-svg" viewBox="0 0 24 24">
+                        <path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/>
+                    </svg>
+                    {% endif %}
+                </div>
+
+                <!-- Badge del modelo usado -->
+                <div class="model-used-badge">
+                    {% if modelo_usado == 'arbol_decision' %}
+                    <svg viewBox="0 0 24 24"><path d="M17,12V3A1,1 0 0,0 16,2H3A1,1 0 0,0 2,3V12A1,1 0 0,0 3,13H7V15H5V17H7V19H9V17H11V15H9V13H16A1,1 0 0,0 17,12M15,11H4V4H15V11M22,15V13H19V10H17V13H14V15H17V22H19V15H22Z"/></svg>
+                    Árbol de Decisión
+                    {% else %}
+                    <svg viewBox="0 0 24 24"><path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21A7,7 0 0,1 14,26H10A7,7 0 0,1 3,19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2Z"/></svg>
+                    Red Neuronal
+                    {% endif %}
+                </div>
+
+                <p class="result-label">Diagnóstico predictivo</p>
+                <p class="result-value">{{ resultado }}</p>
+                <p class="prob-label">Probabilidad de anemia</p>
+                <div class="prob-bar-track">
+                    <div class="prob-bar-fill" style="width: {{ probabilidad | round(2) }}%"></div>
+                </div>
+                <p class="prob-value">{{ probabilidad | round(2) }}%</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <p class="footer-note">Modelos entrenados con datos hematológicos clínicos &nbsp;·&nbsp; Red Neuronal (Keras) &amp; Árbol de Decisión (scikit-learn)</p>
+
+    </div>
+</body>
+
+</html>
