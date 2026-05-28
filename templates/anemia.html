@@ -542,7 +542,22 @@
             font-size: 11px;
             color: var(--muted);
             letter-spacing: 0.04em;
+            line-height: 1.6;
         }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .back-link:hover { opacity: 1; }
     </style>
 </head>
 
@@ -551,20 +566,10 @@
 
         <!-- Header -->
         <div class="header">
-            <div class="nav-badges">
-                <div class="badge">
-                    <!-- Ícono sangre / laboratorio -->
-                    <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12C22,6.47 17.5,2 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M16.5,7.5C16.5,10.58 14.5,14 12,14C9.5,14 7.5,10.58 7.5,7.5C7.5,6.5 8.5,5.5 9.5,6L12,7.5L14.5,6C15.5,5.5 16.5,6.5 16.5,7.5Z"/></svg>
-                    Hematología · ML
-                </div>
-                <a href="/" class="badge-link">
-                    <svg viewBox="0 0 24 24"><path d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L6.04,7.5L12,10.85L17.96,7.5L12,4.15Z"/></svg>
-                    Titanic · Supervivencia
-                </a>
-                <a href="/diabetes" class="badge-link-teal">
-                    <svg viewBox="0 0 24 24"><path d="M19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M13,17H11V13H7V11H11V7H13V11H17V13H13V17Z"/></svg>
-                    Diabetes · S. Experto
-                </a>
+            <div class="badge" style="margin-bottom: 18px;">
+                <!-- Ícono sangre / laboratorio -->
+                <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12C22,6.47 17.5,2 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M16.5,7.5C16.5,10.58 14.5,14 12,14C9.5,14 7.5,10.58 7.5,7.5C7.5,6.5 8.5,5.5 9.5,6L12,7.5L14.5,6C15.5,5.5 16.5,6.5 16.5,7.5Z"/></svg>
+                Hematología · ML
             </div>
 
             <h1>Detección de <span>Anemia</span></h1>
@@ -718,7 +723,15 @@
             {% endif %}
         </div>
 
-        <p class="footer-note">Modelos entrenados con datos hematológicos clínicos &nbsp;·&nbsp; Red Neuronal (Keras) &amp; Árbol de Decisión (scikit-learn)</p>
+        <p class="footer-note">
+            Modelos entrenados con datos hematológicos clínicos &nbsp;·&nbsp; Red Neuronal (Keras) &amp; Árbol de Decisión (scikit-learn)<br>
+            <a href="/" class="back-link">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;">
+                    <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
+                </svg>
+                Volver al inicio
+            </a>
+        </p>
 
     </div>
 </body>
