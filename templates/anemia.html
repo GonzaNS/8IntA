@@ -310,12 +310,20 @@
 
         select option { background: var(--deep); }
 
-        /* ── Reference ranges hint ───────────────────────────── */
+        /* ── Reference ranges hint & descriptions ───────────────────────────── */
         .hint {
             font-size: 10px;
             color: #2a4a68;
             margin-top: 3px;
             letter-spacing: 0.03em;
+        }
+
+        .field-desc {
+            font-size: 10.5px;
+            color: #5d7c9c;
+            line-height: 1.35;
+            margin-bottom: 2px;
+            font-weight: 400;
         }
 
         /* ── Model selector ──────────────────────────────────── */
@@ -610,6 +618,7 @@
                             <svg class="svg-icon" viewBox="0 0 24 24"><path d="M16.5,7.5C16.5,10.58 14.5,14 12,14C9.5,14 7.5,10.58 7.5,7.5C7.5,6.5 8.5,5.5 9.5,6L12,7.5L14.5,6C15.5,5.5 16.5,6.5 16.5,7.5Z M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12C22,6.47 17.5,2 12,2Z"/></svg>
                             Hemoglobin (g/dL)
                         </label>
+                        <p class="field-desc">Proteína en los glóbulos rojos que transporta oxígeno a los órganos y tejidos del cuerpo y dióxido de carbono de vuelta a los pulmones.</p>
                         <input type="number" step="0.1" min="0" max="25" name="hemoglobin" id="hemoglobin"
                                required placeholder="Ej: 12.5"
                                value="{{ request.form.get('hemoglobin', '') }}">
@@ -622,6 +631,7 @@
                             <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9,3V4H4V6H5V20A2,2 0 0,0 7,22H17A2,2 0 0,0 19,20V6H20V4H15V3H9M7,6H17V20H7V6M9,8V18H11V8H9M13,8V18H15V8H13Z"/></svg>
                             MCH (pg)
                         </label>
+                        <p class="field-desc">Siglas de "hemoglobina corpuscular media". Es la cantidad promedio de hemoglobina en cada glóbulo rojo.</p>
                         <input type="number" step="0.1" min="0" max="50" name="mch" id="mch"
                                required placeholder="Ej: 22.5"
                                value="{{ request.form.get('mch', '') }}">
@@ -634,6 +644,7 @@
                             <svg class="svg-icon" viewBox="0 0 24 24"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/></svg>
                             MCHC (g/dL)
                         </label>
+                        <p class="field-desc">Concentración media de hemoglobina corpuscular. Medida de la concentración promedio de hemoglobina dentro de un solo glóbulo rojo.</p>
                         <input type="number" step="0.1" min="0" max="50" name="mchc" id="mchc"
                                required placeholder="Ej: 30.5"
                                value="{{ request.form.get('mchc', '') }}">
@@ -646,6 +657,7 @@
                             <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6Z"/></svg>
                             MCV (fL)
                         </label>
+                        <p class="field-desc">Volumen corpuscular medio. Mide el tamaño promedio de los glóbulos rojos.</p>
                         <input type="number" step="0.1" min="0" max="150" name="mcv" id="mcv"
                                required placeholder="Ej: 82.0"
                                value="{{ request.form.get('mcv', '') }}">
