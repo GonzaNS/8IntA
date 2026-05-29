@@ -4,7 +4,7 @@ import joblib
 import numpy as np
 
 # Sistema Experto — Diabetes Mellitus Tipo 2
-from diabetes_expert import diagnosticar, SINTOMAS, REGLAS_PROLOG
+from Diabetes.diabetes_expert import diagnosticar, SINTOMAS, REGLAS_PROLOG
 
 app = Flask(__name__)
 
@@ -14,21 +14,21 @@ app = Flask(__name__)
 
 # ▶ Red Neuronal (modelo original — intacto)
 print("Cargando Red Neuronal y scaler...")
-nn_model = load_model("mimodelo_completo.h5")
-scaler = joblib.load("mi_scaler.pkl")
+nn_model = load_model("Titanic/mimodelo_completo.h5")
+scaler = joblib.load("Titanic/mi_scaler.pkl")
 print("Red Neuronal lista.")
 
 # ▶ Árbol de Decisión Titanic (se carga si el .pkl ya fue generado)
 import os as _os
-DT_MODEL_PATH = "modelo_dt_titanic.pkl"
+DT_MODEL_PATH = "Titanic/modelo_dt_titanic.pkl"
 if _os.path.exists(DT_MODEL_PATH):
     dt_model = joblib.load(DT_MODEL_PATH)
     print("Árbol de Decisión Titanic cargado.")
 else:
     dt_model = None
     print(
-        "AVISO: 'modelo_dt_titanic.pkl' no encontrado. "
-        "Ejecuta 'Titanic_DT_Local.py' para generarlo antes de usar el Árbol de Decisión."
+        "AVISO: 'Titanic/modelo_dt_titanic.pkl' no encontrado. "
+        "Ejecuta 'Titanic/Titanic_DT_Local.py' para generarlo antes de usar el Árbol de Decisión."
     )
 
 # ══════════════════════════════════════════════════════════════
@@ -36,8 +36,8 @@ else:
 # ══════════════════════════════════════════════════════════════
 
 # ▶ Red Neuronal — Anemia
-ANEMIA_RN_PATH     = "anemia_modelo_rn.h5"
-ANEMIA_SCALER_PATH = "anemia_scaler.pkl"
+ANEMIA_RN_PATH     = "Anemia/anemia_modelo_rn.h5"
+ANEMIA_SCALER_PATH = "Anemia/anemia_scaler.pkl"
 if _os.path.exists(ANEMIA_RN_PATH) and _os.path.exists(ANEMIA_SCALER_PATH):
     anemia_nn_model = load_model(ANEMIA_RN_PATH)
     anemia_scaler   = joblib.load(ANEMIA_SCALER_PATH)
@@ -47,19 +47,19 @@ else:
     anemia_scaler   = None
     print(
         "AVISO: Modelos de anemia no encontrados. "
-        "Ejecuta 'Anemia_RN_Local.py' para generarlos."
+        "Ejecuta 'Anemia/Anemia_RN_Local.py' para generarlos."
     )
 
 # ▶ Árbol de Decisión — Anemia
-ANEMIA_DT_PATH = "anemia_modelo_dt.pkl"
+ANEMIA_DT_PATH = "Anemia/anemia_modelo_dt.pkl"
 if _os.path.exists(ANEMIA_DT_PATH):
     anemia_dt_model = joblib.load(ANEMIA_DT_PATH)
     print("Árbol de Decisión de Anemia cargado.")
 else:
     anemia_dt_model = None
     print(
-        "AVISO: 'anemia_modelo_dt.pkl' no encontrado. "
-        "Ejecuta 'Anemia_DT_Local.py' para generarlo."
+        "AVISO: 'Anemia/anemia_modelo_dt.pkl' no encontrado. "
+        "Ejecuta 'Anemia/Anemia_DT_Local.py' para generarlo."
     )
 
 print("Servidor listo para recibir peticiones.")
@@ -104,7 +104,7 @@ def predecir():
                 # El .pkl aún no ha sido generado
                 return render_template(
                     "index.html",
-                    resultado="Error: entrena el Árbol de Decisión primero (ejecuta Titanic_DT_Local.py)",
+                    resultado="Error: entrena el Árbol de Decisión primero (ejecuta Titanic/Titanic_DT_Local.py)",
                     probabilidad=0.0,
                     modelo_usado=modelo_elegido,
                 )
@@ -158,7 +158,7 @@ def anemia_predecir():
             if anemia_nn_model is None or anemia_scaler is None:
                 return render_template(
                     "anemia.html",
-                    resultado="Error: ejecuta Anemia_RN_Local.py para generar los modelos.",
+                    resultado="Error: ejecuta Anemia/Anemia_RN_Local.py para generar los modelos.",
                     probabilidad=0.0,
                     modelo_usado=modelo_elegido,
                 )
@@ -172,7 +172,7 @@ def anemia_predecir():
             if anemia_dt_model is None:
                 return render_template(
                     "anemia.html",
-                    resultado="Error: ejecuta Anemia_DT_Local.py para generar el modelo.",
+                    resultado="Error: ejecuta Anemia/Anemia_DT_Local.py para generar el modelo.",
                     probabilidad=0.0,
                     modelo_usado=modelo_elegido,
                 )
