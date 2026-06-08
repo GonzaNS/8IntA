@@ -164,7 +164,13 @@ def anemia_predecir():
                 )
             datos_escalados = anemia_scaler.transform(datos_entrada)
             prediccion  = anemia_nn_model.predict(datos_escalados)
-            probabilidad = float(prediccion[0][0]) * 100
+            prob_raw = float(prediccion[0][0])
+            # Temperature scaling: suaviza predicciones extremas (0% o 100%)
+            # sin reentrenar el modelo. T>1 produce valores más intermedios.
+            TEMPERATURE = 3.5
+            logit = np.log(prob_raw / (1 - prob_raw + 1e-8))
+            prob_calibrada = 1 / (1 + np.exp(-logit / TEMPERATURE))
+            probabilidad = prob_calibrada * 100
             estado = "Anémico" if probabilidad >= 50 else "No anémico"
 
         # ── Rama 2: Árbol de Decisión ────────────────────────────────────

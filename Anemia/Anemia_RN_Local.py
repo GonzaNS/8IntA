@@ -14,7 +14,8 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import keras
-from keras import layers
+from keras import layers, regularizers
+from keras.callbacks import EarlyStopping
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, classification_report
@@ -72,9 +73,15 @@ joblib.dump(scaler, SCALER_ARCHIVO)
 print(f"  → Scaler guardado como '{SCALER_ARCHIVO}'")
 
 # ── 6. DEFINICIÓN DEL MODELO ──────────────────────────────────────────────────
+# Se añade Dropout y regularización L2 para evitar sobreajuste (overfitting),
+# que era la causa de predicciones siempre en 0% o 100%.
 model = keras.Sequential([
-    layers.Dense(64, input_dim=len(COLUMNS), activation="relu"),
-    layers.Dense(32, activation="relu"),
+    layers.Dense(64, input_dim=len(COLUMNS), activation="relu",
+                 kernel_regularizer=regularizers.l2(0.001)),
+    layers.Dropout(0.3),
+    layers.Dense(32, activation="relu",
+                 kernel_regularizer=regularizers.l2(0.001)),
+    layers.Dropout(0.2),
     layers.Dense(16, activation="relu"),
     layers.Dense(1,  activation="sigmoid")
 ])
@@ -88,12 +95,22 @@ model.compile(
 model.summary()
 
 # ── 7. ENTRENAMIENTO ──────────────────────────────────────────────────────────
-print("\nEntrenando la Red Neuronal (300 épocas)...")
+# EarlyStopping detiene el entrenamiento cuando val_loss deja de mejorar,
+# evitando el sobreajuste que producía salidas extremas (0% o 100%).
+early_stop = EarlyStopping(
+    monitor="val_loss",
+    patience=20,
+    restore_best_weights=True,
+    verbose=1
+)
+
+print("\nEntrenando la Red Neuronal (máx 150 épocas con EarlyStopping)...")
 history = model.fit(
     X_train_scaled, y_train,
-    epochs=300,
+    epochs=150,
     batch_size=32,
     validation_split=0.15,
+    callbacks=[early_stop],
     verbose=0
 )
 

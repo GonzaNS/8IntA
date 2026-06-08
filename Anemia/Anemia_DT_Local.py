@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-Anemia Decision Tree - Script de Entrenamiento Independiente
+Anemia Random Forest - Script de Entrenamiento Independiente
 Lee anemia.csv y divide internamente en 80% train / 20% test.
 Exporta: anemia_modelo_dt.pkl
 
 COLUMNAS (orden estricto): ["Gender", "Hemoglobin", "MCH", "MCHC", "MCV"]
 OBJETIVO: Result  (0 = No anémico, 1 = Anémico)
 
-NOTA: El Árbol de Decisión NO necesita scaler — es insensible a la escala.
+NOTA: Se usa RandomForestClassifier en lugar de un solo árbol porque el bosque
+promedia las probabilidades de 100 árboles distintos, evitando hojas puras y
+produciendo valores intermedios (ej. 63%, 45%) en lugar de solo 0% o 100%.
 """
 
 import numpy as np
 import pandas as pd
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
 import joblib
@@ -50,9 +52,12 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 print(f"\nDivisión: {len(X_train)} entrenamiento / {len(X_test)} prueba")
 
-# ── 4. ENTRENAMIENTO DEL ÁRBOL DE DECISIÓN ───────────────────────────────────
-print("\nEntrenando el Árbol de Decisión...")
-dt_model = DecisionTreeClassifier(
+# ── 4. ENTRENAMIENTO DEL RANDOM FOREST ───────────────────────────────────────
+# RandomForest promedia 100 árboles con distintos subconjuntos de datos,
+# lo que produce probabilidades suaves en lugar de 0% o 100%.
+print("\nEntrenando el Random Forest (100 árboles)...")
+dt_model = RandomForestClassifier(
+    n_estimators=100,
     max_depth=6,
     min_samples_split=10,
     min_samples_leaf=5,
@@ -81,7 +86,7 @@ for col, imp in sorted(zip(COLUMNS, importances), key=lambda x: -x[1]):
 
 # ── 7. GUARDAR EL MODELO ──────────────────────────────────────────────────────
 joblib.dump(dt_model, DT_MODELO_ARCHIVO)
-print(f"\n✔ Modelo guardado como '{DT_MODELO_ARCHIVO}'")
+print(f"\n✔ Random Forest guardado como '{DT_MODELO_ARCHIVO}'")
 print("  Cárgalo en app.py con: joblib.load('anemia_modelo_dt.pkl')")
 
 # ── 8. PRUEBA DE PREDICCIÓN INDIVIDUAL ───────────────────────────────────────
