@@ -9,4 +9,7 @@ __pycache__/
 ec2ml/
 
 
-*.md
+# Ignorar carpeta de documentación interna
+md/
+# Permitir el README raíz explícitamente
+!README.md
