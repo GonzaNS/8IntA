@@ -13,3 +13,6 @@ ec2ml/
 md/
 # Permitir el README raíz explícitamente
 !README.md
+
+generar_informe.py
+*.docx
