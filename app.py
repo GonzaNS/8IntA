@@ -32,34 +32,34 @@ else:
     )
 
 # ══════════════════════════════════════════════════════════════
-#  MODELOS DE ANEMIA
+#  MODELOS DE DIABETES (Red Neuronal + Random Forest)
 # ══════════════════════════════════════════════════════════════
 
-# ▶ Red Neuronal — Anemia
-ANEMIA_RN_PATH     = "Anemia/anemia_modelo_rn.h5"
-ANEMIA_SCALER_PATH = "Anemia/anemia_scaler.pkl"
-if _os.path.exists(ANEMIA_RN_PATH) and _os.path.exists(ANEMIA_SCALER_PATH):
-    anemia_nn_model = load_model(ANEMIA_RN_PATH)
-    anemia_scaler   = joblib.load(ANEMIA_SCALER_PATH)
-    print("Red Neuronal de Anemia cargada.")
+# ▶ Red Neuronal — Diabetes
+DIABETES_ML_RN_PATH     = "Diabetes_ML/diabetes_modelo_rn.h5"
+DIABETES_ML_SCALER_PATH = "Diabetes_ML/diabetes_scaler.pkl"
+if _os.path.exists(DIABETES_ML_RN_PATH) and _os.path.exists(DIABETES_ML_SCALER_PATH):
+    anemia_nn_model = load_model(DIABETES_ML_RN_PATH)
+    anemia_scaler   = joblib.load(DIABETES_ML_SCALER_PATH)
+    print("Red Neuronal de Diabetes (ML) cargada.")
 else:
     anemia_nn_model = None
     anemia_scaler   = None
     print(
-        "AVISO: Modelos de anemia no encontrados. "
-        "Ejecuta 'Anemia/Anemia_RN_Local.py' para generarlos."
+        "AVISO: Modelos de diabetes ML no encontrados. "
+        "Ejecuta 'Diabetes_ML/Diabetes_RN_Local.py' para generarlos."
     )
 
-# ▶ Árbol de Decisión — Anemia
-ANEMIA_DT_PATH = "Anemia/anemia_modelo_dt.pkl"
-if _os.path.exists(ANEMIA_DT_PATH):
-    anemia_dt_model = joblib.load(ANEMIA_DT_PATH)
-    print("Árbol de Decisión de Anemia cargado.")
+# ▶ Random Forest — Diabetes
+DIABETES_ML_DT_PATH = "Diabetes_ML/diabetes_modelo_dt.pkl"
+if _os.path.exists(DIABETES_ML_DT_PATH):
+    anemia_dt_model = joblib.load(DIABETES_ML_DT_PATH)
+    print("Random Forest de Diabetes (ML) cargado.")
 else:
     anemia_dt_model = None
     print(
-        "AVISO: 'Anemia/anemia_modelo_dt.pkl' no encontrado. "
-        "Ejecuta 'Anemia/Anemia_DT_Local.py' para generarlo."
+        "AVISO: 'Diabetes_ML/diabetes_modelo_dt.pkl' no encontrado. "
+        "Ejecuta 'Diabetes_ML/Diabetes_DT_Local.py' para generarlo."
     )
 
 print("Servidor listo para recibir peticiones.")
@@ -127,38 +127,51 @@ def predecir():
 
 
 # ══════════════════════════════════════════════════════════════
-#  ANÁLISIS PREDICTIVO — ANEMIA
+#  ANÁLISIS PREDICTIVO — DIABETES ML (Red Neuronal + Random Forest)
 # ══════════════════════════════════════════════════════════════
 
-# 6. Ruta principal de anemia: muestra el formulario vacío
-@app.route("/anemia")
+# 6. Ruta principal: muestra el formulario vacío
+@app.route("/diabetes_ml")
 def anemia_form():
-    return render_template("anemia.html")
+    return render_template("diabetes_ml.html")
 
 
-# 7. Ruta de predicción de anemia
-@app.route("/anemia/predecir", methods=["POST"])
+# 7. Ruta de predicción de diabetes ML
+@app.route("/diabetes_ml/predecir", methods=["POST"])
 def anemia_predecir():
     if request.method == "POST":
-        # Extraer datos del formulario
-        gender     = int(request.form["gender"])
-        hemoglobin = float(request.form["hemoglobin"])
-        mch        = float(request.form["mch"])
-        mchc       = float(request.form["mchc"])
-        mcv        = float(request.form["mcv"])
+        # ── Mapas de codificación (deben ser idénticos a los usados en entrenamiento) ──
+        GENDER_MAP  = {"Female": 0, "Male": 1, "Other": 2}
+        SMOKING_MAP = {
+            "never": 0, "No Info": 1, "current": 2,
+            "former": 3, "not current": 4, "ever": 5,
+        }
+
+        # Extraer datos del formulario y codificar categóricos
+        gender              = GENDER_MAP.get(request.form["gender"], 0)
+        age                 = float(request.form["age"])
+        hypertension        = int(request.form["hypertension"])
+        heart_disease       = int(request.form["heart_disease"])
+        smoking_history     = SMOKING_MAP.get(request.form["smoking_history"], 1)
+        bmi                 = float(request.form["bmi"])
+        hba1c_level         = float(request.form["hba1c_level"])
+        blood_glucose_level = float(request.form["blood_glucose_level"])
 
         # Modelo elegido por el usuario
         modelo_elegido = request.form.get("modelo", "red_neuronal")
 
-        # ORDEN ESTRICTO: ["Gender", "Hemoglobin", "MCH", "MCHC", "MCV"]
-        datos_entrada = np.array([[gender, hemoglobin, mch, mchc, mcv]])
+        # ORDEN ESTRICTO: debe coincidir con COLUMNS en los scripts de entrenamiento
+        datos_entrada = np.array([[
+            gender, age, hypertension, heart_disease,
+            smoking_history, bmi, hba1c_level, blood_glucose_level
+        ]])
 
         # ── Rama 1: Red Neuronal ─────────────────────────────────────────
         if modelo_elegido == "red_neuronal":
             if anemia_nn_model is None or anemia_scaler is None:
                 return render_template(
-                    "anemia.html",
-                    resultado="Error: ejecuta Anemia/Anemia_RN_Local.py para generar los modelos.",
+                    "diabetes_ml.html",
+                    resultado="Error: ejecuta Diabetes_ML/Diabetes_RN_Local.py para generar los modelos.",
                     probabilidad=0.0,
                     modelo_usado=modelo_elegido,
                 )
@@ -171,27 +184,27 @@ def anemia_predecir():
             logit = np.log(prob_raw / (1 - prob_raw + 1e-8))
             prob_calibrada = 1 / (1 + np.exp(-logit / TEMPERATURE))
             probabilidad = prob_calibrada * 100
-            estado = "Anémico" if probabilidad >= 50 else "No anémico"
+            estado = "Diabético" if probabilidad >= 50 else "No diabético"
 
-        # ── Rama 2: Árbol de Decisión ────────────────────────────────────
+        # ── Rama 2: Random Forest ─────────────────────────────────────
         elif modelo_elegido == "arbol_decision":
             if anemia_dt_model is None:
                 return render_template(
-                    "anemia.html",
-                    resultado="Error: ejecuta Anemia/Anemia_DT_Local.py para generar el modelo.",
+                    "diabetes_ml.html",
+                    resultado="Error: ejecuta Diabetes_ML/Diabetes_DT_Local.py para generar el modelo.",
                     probabilidad=0.0,
                     modelo_usado=modelo_elegido,
                 )
-            proba = anemia_dt_model.predict_proba(datos_entrada)[0]  # [prob_no, prob_anemia]
+            proba = anemia_dt_model.predict_proba(datos_entrada)[0]  # [prob_no, prob_diabetes]
             probabilidad = float(proba[1]) * 100
-            estado = "Anémico" if probabilidad >= 50 else "No anémico"
+            estado = "Diabético" if probabilidad >= 50 else "No diabético"
 
         else:
             estado = "Modelo desconocido"
             probabilidad = 0.0
 
         return render_template(
-            "anemia.html",
+            "diabetes_ml.html",
             resultado=estado,
             probabilidad=probabilidad,
             modelo_usado=modelo_elegido,

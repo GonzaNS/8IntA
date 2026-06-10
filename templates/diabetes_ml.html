@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detección de Anemia · Análisis Predictivo ML</title>
-    <meta name="description" content="Predicción de anemia mediante Machine Learning usando datos hematológicos como hemoglobina, MCH, MCHC y MCV.">
+    <title>Predicción de Diabetes · Análisis Predictivo ML</title>
+    <meta name="description" content="Predicción de diabetes mediante Machine Learning usando factores clínicos como HbA1c, glucosa en sangre, BMI e historial médico.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -28,8 +28,8 @@
             --text:      #c8daf4;
             --muted:     #4d6a8a;
             --input-bg:  #091525;
-            --positive:  #2dd4a0;  /* No anémico */
-            --negative:  #e05c5c;  /* Anémico     */
+            --positive:  #2dd4a0;  /* No diabético */
+            --negative:  #e05c5c;  /* Diabético     */
         }
 
         body {
@@ -45,7 +45,6 @@
             overflow-x: hidden;
         }
 
-        /* Grid pattern */
         body::before {
             content: '';
             position: fixed;
@@ -57,7 +56,6 @@
             pointer-events: none;
         }
 
-        /* Glowing orb */
         body::after {
             content: '';
             position: fixed;
@@ -72,7 +70,7 @@
 
         .container {
             width: 100%;
-            max-width: 560px;
+            max-width: 620px;
             animation: fadeUp 0.6s ease both;
         }
 
@@ -110,11 +108,7 @@
             color: var(--accent2);
         }
 
-        .badge svg, .badge-link svg {
-            width: 13px;
-            height: 13px;
-            fill: currentColor;
-        }
+        .badge svg { width: 13px; height: 13px; fill: currentColor; }
 
         .badge-link {
             display: inline-flex;
@@ -135,27 +129,6 @@
         .badge-link:hover {
             background: rgba(201,168,76,0.14);
             border-color: rgba(201,168,76,0.5);
-        }
-
-        .badge-link-teal {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            background: rgba(45,212,160,0.07);
-            border: 1px solid rgba(45,212,160,0.25);
-            border-radius: 100px;
-            padding: 5px 14px;
-            font-size: 11px;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: #7ee8c7;
-            text-decoration: none;
-            transition: background 0.2s, border-color 0.2s;
-        }
-
-        .badge-link-teal:hover {
-            background: rgba(45,212,160,0.14);
-            border-color: rgba(45,212,160,0.5);
         }
 
         h1 {
@@ -192,7 +165,6 @@
             font-weight: 300;
         }
 
-        /* ── Info pills ──────────────────────────────────────── */
         .info-pills {
             display: flex;
             gap: 8px;
@@ -310,7 +282,6 @@
 
         select option { background: var(--deep); }
 
-        /* ── Reference ranges hint & descriptions ───────────────────────────── */
         .hint {
             font-size: 10px;
             color: #2a4a68;
@@ -326,6 +297,40 @@
             font-weight: 400;
         }
 
+        /* ── Toggle Sí/No ─────────────────────────────────────── */
+        .toggle-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toggle-row input[type="radio"] { display: none; }
+
+        .toggle-row label {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 9px 10px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-transform: none;
+            color: var(--muted);
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+        }
+
+        .toggle-row input[type="radio"]:checked + label {
+            border-color: var(--accent);
+            color: var(--accent2);
+            background: rgba(59,158,255,0.1);
+        }
+
+        .toggle-row label:hover { border-color: rgba(59,158,255,0.5); color: var(--text); }
+
         /* ── Model selector ──────────────────────────────────── */
         .model-selector-label {
             font-size: 11px;
@@ -340,7 +345,6 @@
         }
 
         .model-toggle { display: flex; gap: 10px; }
-
         .model-toggle input[type="radio"] { display: none; }
 
         .model-toggle label {
@@ -362,10 +366,7 @@
             transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
         }
 
-        .model-toggle label svg {
-            width: 15px; height: 15px;
-            fill: currentColor; flex-shrink: 0;
-        }
+        .model-toggle label svg { width: 15px; height: 15px; fill: currentColor; flex-shrink: 0; }
 
         .model-toggle input[type="radio"]:checked + label {
             border-color: var(--accent);
@@ -374,10 +375,7 @@
             box-shadow: 0 0 0 3px rgba(59,158,255,0.08);
         }
 
-        .model-toggle label:hover {
-            border-color: rgba(59,158,255,0.5);
-            color: var(--text);
-        }
+        .model-toggle label:hover { border-color: rgba(59,158,255,0.5); color: var(--text); }
 
         /* ── Submit button ───────────────────────────────────── */
         .btn {
@@ -445,7 +443,6 @@
         .resultado.healthy::before { background: var(--positive); }
         .resultado.anemic::before  { background: var(--negative); }
 
-        /* Icons */
         .result-icon {
             margin-bottom: 14px;
             display: flex;
@@ -477,7 +474,6 @@
             animation: shake-anemic 2.5s ease-in-out infinite;
         }
 
-        /* Model badge */
         .model-used-badge {
             display: inline-flex;
             align-items: center;
@@ -513,7 +509,6 @@
         .healthy .result-value { color: var(--positive); }
         .anemic  .result-value { color: var(--negative); }
 
-        /* Progress bar */
         .prob-label {
             font-size: 12px;
             color: var(--muted);
@@ -575,27 +570,27 @@
         <!-- Header -->
         <div class="header">
             <div class="badge" style="margin-bottom: 18px;">
-                <!-- Ícono sangre / laboratorio -->
-                <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12C22,6.47 17.5,2 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M16.5,7.5C16.5,10.58 14.5,14 12,14C9.5,14 7.5,10.58 7.5,7.5C7.5,6.5 8.5,5.5 9.5,6L12,7.5L14.5,6C15.5,5.5 16.5,6.5 16.5,7.5Z"/></svg>
-                Hematología · ML
+                <svg viewBox="0 0 24 24"><path d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M9,17H7V10H9V17M13,17H11V7H13V17M17,17H15V13H17V17Z"/></svg>
+                Endocrinología · ML
             </div>
 
-            <h1>Detección de <span>Anemia</span></h1>
+            <h1>Predicción de <span>Diabetes</span></h1>
             <div class="divider"><span class="divider-icon">✦</span></div>
-            <p class="subtitle">Ingresa los parámetros hematológicos del paciente para obtener una predicción
-                basada en modelos de Machine Learning entrenados con datos clínicos reales.</p>
+            <p class="subtitle">Ingresa los datos clínicos del paciente para obtener una predicción
+                basada en modelos de Machine Learning entrenados con 100,000 registros reales.</p>
 
             <div class="info-pills">
-                <span class="pill"><span class="pill-dot"></span>Hemoglobina</span>
-                <span class="pill"><span class="pill-dot"></span>MCH</span>
-                <span class="pill"><span class="pill-dot"></span>MCHC</span>
-                <span class="pill"><span class="pill-dot"></span>MCV</span>
+                <span class="pill"><span class="pill-dot"></span>HbA1c</span>
+                <span class="pill"><span class="pill-dot"></span>Glucosa</span>
+                <span class="pill"><span class="pill-dot"></span>BMI</span>
+                <span class="pill"><span class="pill-dot"></span>Hipertensión</span>
+                <span class="pill"><span class="pill-dot"></span>Edad</span>
             </div>
         </div>
 
         <!-- Form card -->
         <div class="card">
-            <form action="/anemia/predecir" method="POST">
+            <form action="/diabetes_ml/predecir" method="POST">
                 <div class="form-grid">
 
                     <!-- Género -->
@@ -606,62 +601,116 @@
                         </label>
                         <div class="select-wrapper">
                             <select name="gender" id="gender">
-                                <option value="1" {% if request.form.get('gender')=='1' %}selected{% endif %}>Femenino (1)</option>
-                                <option value="0" {% if request.form.get('gender')=='0' %}selected{% endif %}>Masculino (0)</option>
+                                <option value="Female" {% if request.form.get('gender')=='Female' %}selected{% endif %}>Femenino</option>
+                                <option value="Male"   {% if request.form.get('gender')=='Male'   %}selected{% endif %}>Masculino</option>
+                                <option value="Other"  {% if request.form.get('gender')=='Other'  %}selected{% endif %}>Otro</option>
                             </select>
                         </div>
                     </div>
 
-                    <!-- Hemoglobina -->
+                    <!-- Edad -->
+                    <div class="form-group">
+                        <label>
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/></svg>
+                            Edad (años)
+                        </label>
+                        <p class="field-desc">Edad del paciente en años. La diabetes es más frecuente en adultos mayores.</p>
+                        <input type="number" step="1" min="0" max="80" name="age" id="age"
+                               required placeholder="Ej: 45"
+                               value="{{ request.form.get('age', '') }}">
+                        <span class="hint">Rango: 0 – 80 años</span>
+                    </div>
+
+                    <!-- Hipertensión -->
+                    <div class="form-group">
+                        <label>
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"/></svg>
+                            Hipertensión
+                        </label>
+                        <p class="field-desc">¿El paciente tiene presión arterial elevada persistente?</p>
+                        <div class="toggle-row">
+                            <input type="radio" id="hta_no" name="hypertension" value="0"
+                                {% if request.form.get('hypertension', '0') == '0' %}checked{% endif %}>
+                            <label for="hta_no">No</label>
+                            <input type="radio" id="hta_si" name="hypertension" value="1"
+                                {% if request.form.get('hypertension') == '1' %}checked{% endif %}>
+                            <label for="hta_si">Sí</label>
+                        </div>
+                    </div>
+
+                    <!-- Cardiopatía -->
+                    <div class="form-group">
+                        <label>
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19.5,3.09L15,7.6V4H13V11H20V9H16.43L21,4.5L19.5,3.09M1,11V13H3L6.64,21.36L8.45,20.55L5.19,13H13.19L9.93,20.55L11.74,21.36L15.38,13H17V11H1Z"/></svg>
+                            Cardiopatía
+                        </label>
+                        <p class="field-desc">¿El paciente tiene alguna enfermedad cardíaca diagnosticada?</p>
+                        <div class="toggle-row">
+                            <input type="radio" id="hd_no" name="heart_disease" value="0"
+                                {% if request.form.get('heart_disease', '0') == '0' %}checked{% endif %}>
+                            <label for="hd_no">No</label>
+                            <input type="radio" id="hd_si" name="heart_disease" value="1"
+                                {% if request.form.get('heart_disease') == '1' %}checked{% endif %}>
+                            <label for="hd_si">Sí</label>
+                        </div>
+                    </div>
+
+                    <!-- Historial de tabaquismo -->
+                    <div class="form-group full">
+                        <label>
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M2,18H17V21H19V18H22V16H19V15H17V16H2V18M18,7C18,4.24 15.76,2 13,2V4A4,4 0 0,1 17,8V10H19V8C21.21,8 23,9.79 23,12V15H21V12A2,2 0 0,0 19,10V15H17V10H13C11.34,10 10,8.66 10,7H12A2,2 0 0,0 14,9H16A2,2 0 0,0 16,7H18M2,14H13V16H2V14Z"/></svg>
+                            Historial de tabaquismo
+                        </label>
+                        <p class="field-desc">El tabaquismo es un factor de riesgo para la diabetes y sus complicaciones.</p>
+                        <div class="select-wrapper">
+                            <select name="smoking_history" id="smoking_history">
+                                <option value="never"       {% if request.form.get('smoking_history')=='never'       %}selected{% endif %}>Nunca</option>
+                                <option value="No Info"     {% if request.form.get('smoking_history')=='No Info'     %}selected{% endif %}>Sin información</option>
+                                <option value="current"     {% if request.form.get('smoking_history')=='current'     %}selected{% endif %}>Fumador actual</option>
+                                <option value="former"      {% if request.form.get('smoking_history')=='former'      %}selected{% endif %}>Ex fumador</option>
+                                <option value="not current" {% if request.form.get('smoking_history')=='not current' %}selected{% endif %}>No actualmente</option>
+                                <option value="ever"        {% if request.form.get('smoking_history')=='ever'        %}selected{% endif %}>Alguna vez</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- BMI -->
+                    <div class="form-group">
+                        <label>
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20,10V8H18V5A1,1 0 0,0 17,4H3A1,1 0 0,0 2,5V19A1,1 0 0,0 3,20H17A1,1 0 0,0 18,19V16H20V14H18V12H20M16,18H4V6H16M8,15H6V9H8M11,15H9V11H11M14,15H12V13H14Z"/></svg>
+                            BMI (kg/m²)
+                        </label>
+                        <p class="field-desc">Índice de Masa Corporal. Un BMI elevado está asociado con mayor riesgo de diabetes.</p>
+                        <input type="number" step="0.01" min="10" max="72" name="bmi" id="bmi"
+                               required placeholder="Ej: 27.5"
+                               value="{{ request.form.get('bmi', '') }}">
+                        <span class="hint">&lt;18.5 bajo · 18.5–24.9 normal · 25–29.9 sobrepeso · ≥30 obeso</span>
+                    </div>
+
+                    <!-- HbA1c -->
                     <div class="form-group">
                         <label>
                             <svg class="svg-icon" viewBox="0 0 24 24"><path d="M16.5,7.5C16.5,10.58 14.5,14 12,14C9.5,14 7.5,10.58 7.5,7.5C7.5,6.5 8.5,5.5 9.5,6L12,7.5L14.5,6C15.5,5.5 16.5,6.5 16.5,7.5Z M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12C22,6.47 17.5,2 12,2Z"/></svg>
-                            Hemoglobin (g/dL)
+                            HbA1c (%)
                         </label>
-                        <p class="field-desc">Proteína en los glóbulos rojos que transporta oxígeno a los órganos y tejidos del cuerpo y dióxido de carbono de vuelta a los pulmones.</p>
-                        <input type="number" step="0.1" min="0" max="25" name="hemoglobin" id="hemoglobin"
-                               required placeholder="Ej: 12.5"
-                               value="{{ request.form.get('hemoglobin', '') }}">
-                        <span class="hint">Normal: ♀ 12–16 · ♂ 13.5–17.5 g/dL</span>
+                        <p class="field-desc">Hemoglobina glicosilada: nivel promedio de azúcar en sangre de los últimos 2–3 meses.</p>
+                        <input type="number" step="0.1" min="3" max="15" name="hba1c_level" id="hba1c_level"
+                               required placeholder="Ej: 6.2"
+                               value="{{ request.form.get('hba1c_level', '') }}">
+                        <span class="hint">≥ 6.5% indica diabetes · 5.7–6.4% prediabetes</span>
                     </div>
 
-                    <!-- MCH -->
-                    <div class="form-group">
-                        <label>
-                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9,3V4H4V6H5V20A2,2 0 0,0 7,22H17A2,2 0 0,0 19,20V6H20V4H15V3H9M7,6H17V20H7V6M9,8V18H11V8H9M13,8V18H15V8H13Z"/></svg>
-                            MCH (pg)
-                        </label>
-                        <p class="field-desc">Siglas de "hemoglobina corpuscular media". Es la cantidad promedio de hemoglobina en cada glóbulo rojo.</p>
-                        <input type="number" step="0.1" min="0" max="50" name="mch" id="mch"
-                               required placeholder="Ej: 22.5"
-                               value="{{ request.form.get('mch', '') }}">
-                        <span class="hint">Normal: 27–33 pg</span>
-                    </div>
-
-                    <!-- MCHC -->
-                    <div class="form-group">
-                        <label>
-                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/></svg>
-                            MCHC (g/dL)
-                        </label>
-                        <p class="field-desc">Concentración media de hemoglobina corpuscular. Medida de la concentración promedio de hemoglobina dentro de un solo glóbulo rojo.</p>
-                        <input type="number" step="0.1" min="0" max="50" name="mchc" id="mchc"
-                               required placeholder="Ej: 30.5"
-                               value="{{ request.form.get('mchc', '') }}">
-                        <span class="hint">Normal: 32–36 g/dL</span>
-                    </div>
-
-                    <!-- MCV -->
+                    <!-- Glucosa en sangre -->
                     <div class="form-group full">
                         <label>
-                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6Z"/></svg>
-                            MCV (fL)
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9,3V4H4V6H5V20A2,2 0 0,0 7,22H17A2,2 0 0,0 19,20V6H20V4H15V3H9M7,6H17V20H7V6M9,8V18H11V8H9M13,8V18H15V8H13Z"/></svg>
+                            Glucosa en sangre (mg/dL)
                         </label>
-                        <p class="field-desc">Volumen corpuscular medio. Mide el tamaño promedio de los glóbulos rojos.</p>
-                        <input type="number" step="0.1" min="0" max="150" name="mcv" id="mcv"
-                               required placeholder="Ej: 82.0"
-                               value="{{ request.form.get('mcv', '') }}">
-                        <span class="hint">Normal: 80–100 fL</span>
+                        <p class="field-desc">Concentración de glucosa en sangre en un momento dado. Valores elevados son indicador clave de diabetes.</p>
+                        <input type="number" step="1" min="50" max="400" name="blood_glucose_level" id="blood_glucose_level"
+                               required placeholder="Ej: 130"
+                               value="{{ request.form.get('blood_glucose_level', '') }}">
+                        <span class="hint">Normal en ayuno: &lt;100 mg/dL · Diabetes: ≥126 mg/dL</span>
                     </div>
 
                     <!-- ── Selector de Modelo ───────────────────────────── -->
@@ -681,7 +730,7 @@
                                 {% if request.form.get('modelo') == 'arbol_decision' %}checked{% endif %}>
                             <label for="modelo_dt">
                                 <svg viewBox="0 0 24 24"><path d="M17,12V3A1,1 0 0,0 16,2H3A1,1 0 0,0 2,3V12A1,1 0 0,0 3,13H7V15H5V17H7V19H9V17H11V15H9V13H16A1,1 0 0,0 17,12M15,11H4V4H15V11M22,15V13H19V10H17V13H14V15H17V22H19V15H22Z"/></svg>
-                                Árbol de Decisión
+                                Random Forest
                             </label>
                         </div>
                     </div>
@@ -689,7 +738,7 @@
 
                     <button type="submit" class="btn" id="btn-predecir">
                         <svg viewBox="0 0 24 24"><path d="M9,3L5,7H8V14H10V7H13M16,17V10H14V17H11L15,21L19,17H16Z"/></svg>
-                        Analizar Muestra
+                        Analizar Paciente
                     </button>
 
                 </div>
@@ -701,12 +750,10 @@
 
                 <div class="result-icon">
                     {% if 'no' in resultado|lower %}
-                    <!-- Ícono check / corazón sano -->
                     <svg class="healthy-svg" viewBox="0 0 24 24">
                         <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"/>
                     </svg>
                     {% else %}
-                    <!-- Ícono alerta médica -->
                     <svg class="anemic-svg" viewBox="0 0 24 24">
                         <path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/>
                     </svg>
@@ -717,7 +764,7 @@
                 <div class="model-used-badge">
                     {% if modelo_usado == 'arbol_decision' %}
                     <svg viewBox="0 0 24 24"><path d="M17,12V3A1,1 0 0,0 16,2H3A1,1 0 0,0 2,3V12A1,1 0 0,0 3,13H7V15H5V17H7V19H9V17H11V15H9V13H16A1,1 0 0,0 17,12M15,11H4V4H15V11M22,15V13H19V10H17V13H14V15H17V22H19V15H22Z"/></svg>
-                    Árbol de Decisión
+                    Random Forest
                     {% else %}
                     <svg viewBox="0 0 24 24"><path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21A7,7 0 0,1 14,26H10A7,7 0 0,1 3,19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2Z"/></svg>
                     Red Neuronal
@@ -726,7 +773,7 @@
 
                 <p class="result-label">Diagnóstico predictivo</p>
                 <p class="result-value">{{ resultado }}</p>
-                <p class="prob-label">Probabilidad de anemia</p>
+                <p class="prob-label">Probabilidad de diabetes</p>
                 <div class="prob-bar-track">
                     <div class="prob-bar-fill" style="width: {{ probabilidad | round(2) }}%"></div>
                 </div>
@@ -736,7 +783,7 @@
         </div>
 
         <p class="footer-note">
-            Modelos entrenados con datos hematológicos clínicos &nbsp;·&nbsp; Red Neuronal (Keras) &amp; Árbol de Decisión (scikit-learn)<br>
+            Modelos entrenados con 100,000 registros clínicos reales &nbsp;·&nbsp; Red Neuronal (Keras) &amp; Random Forest (scikit-learn)<br>
             <a href="/" class="back-link">
                 <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;">
                     <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
