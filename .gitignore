@@ -16,3 +16,6 @@ md/
 
 generar_informe.py
 *.docx
+
+generar_informe_diabetes.py
+*.png
