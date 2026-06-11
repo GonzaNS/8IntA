@@ -9,7 +9,7 @@ Aplicación web de diagnóstico asistido por **Machine Learning** y **Sistema Ex
 | Módulo | Modelos | ¿Qué predice? |
 |---|---|---|
 | **Titanic** | Red Neuronal + Árbol de Decisión | Probabilidad de supervivencia |
-| **Anemia** | Red Neuronal + Random Forest | Si el paciente es anémico |
+| **Diabetes ML** | Red Neuronal + Random Forest | Predicción de diabetes usando Machine Learning |
 | **Diabetes** | Sistema Experto con reglas lógicas | Nivel de riesgo de Diabetes Tipo 2 |
 
 ---
@@ -30,20 +30,20 @@ Aplicación web de diagnóstico asistido por **Machine Learning** y **Sistema Ex
 │   ├── mi_scaler.pkl          # Normalizador RN generado (git-ignorado)
 │   └── modelo_dt_titanic.pkl  # Modelo DT generado (git-ignorado)
 │
-├── Anemia/                    # Módulo Anemia
-│   ├── Anemia_RN_Local.py     # Entrena la Red Neuronal
-│   ├── Anemia_DT_Local.py     # Entrena el Random Forest
-│   ├── anemia.csv             # Dataset de entrenamiento
-│   ├── anemia_modelo_rn.h5    # Modelo RN generado (git-ignorado)
-│   ├── anemia_scaler.pkl      # Normalizador RN generado (git-ignorado)
-│   └── anemia_modelo_dt.pkl   # Modelo RF generado (git-ignorado)
+├── Diabetes_ML/               # Módulo Diabetes ML
+│   ├── Diabetes_RN_Local.py   # Entrena la Red Neuronal
+│   ├── Diabetes_DT_Local.py   # Entrena el Random Forest
+│   ├── diabetes_prediction_dataset.csv # Dataset de entrenamiento
+│   ├── diabetes_modelo_rn.h5  # Modelo RN generado (git-ignorado)
+│   ├── diabetes_scaler.pkl    # Normalizador RN generado (git-ignorado)
+│   └── diabetes_modelo_dt.pkl # Modelo RF generado (git-ignorado)
 │
 ├── Diabetes/                  # Módulo Diabetes
 │   └── diabetes_expert.py     # Motor de inferencia del Sistema Experto
 │
 └── templates/                 # Páginas HTML (Jinja2)
     ├── index.html             # Página Titanic
-    ├── anemia.html            # Página Anemia
+    ├── diabetes_ml.html       # Página Diabetes ML
     └── diabetes.html          # Página Diabetes
 ```
 
@@ -90,9 +90,9 @@ Ejecuta los scripts de entrenamiento desde la **raíz del proyecto**:
 python Titanic/Titanic_RN_Local.py
 python Titanic/Titanic_DT_Local.py
 
-# Módulo Anemia
-python Anemia/Anemia_RN_Local.py
-python Anemia/Anemia_DT_Local.py
+# Módulo Diabetes ML
+python Diabetes_ML/Diabetes_RN_Local.py
+python Diabetes_ML/Diabetes_DT_Local.py
 ```
 
 > El Sistema Experto de Diabetes **no requiere entrenamiento** — sus reglas están en `Diabetes/diabetes_expert.py`.
@@ -112,8 +112,8 @@ Abre el navegador en: **http://localhost:5000**
 | URL | Módulo |
 |---|---|
 | `http://localhost:5000/` | Predicción Titanic |
-| `http://localhost:5000/anemia` | Detección de Anemia |
-| `http://localhost:5000/diabetes` | Diagnóstico de Diabetes |
+| `http://localhost:5000/diabetes_ml` | Detección de Diabetes con ML |
+| `http://localhost:5000/diabetes` | Diagnóstico de Diabetes con Sistema Experto |
 
 ---
 
