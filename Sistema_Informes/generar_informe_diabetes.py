@@ -34,10 +34,10 @@ warnings.filterwarnings("ignore")
 # ══════════════════════════════════════════════════════════════
 print("Cargando dataset y modelos...")
 
-CSV_PATH    = "Diabetes_ML/diabetes_prediction_dataset.csv"
-RN_PATH     = "Diabetes_ML/diabetes_modelo_rn.h5"
-SCALER_PATH = "Diabetes_ML/diabetes_scaler.pkl"
-DT_PATH     = "Diabetes_ML/diabetes_modelo_dt.pkl"
+CSV_PATH    = "../Diabetes_ML/diabetes_prediction_dataset.csv"
+RN_PATH     = "../Diabetes_ML/diabetes_modelo_rn.h5"
+SCALER_PATH = "../Diabetes_ML/diabetes_scaler.pkl"
+DT_PATH     = "../Diabetes_ML/diabetes_modelo_dt.pkl"
 
 for p in [CSV_PATH, RN_PATH, SCALER_PATH, DT_PATH]:
     if not os.path.exists(p):
@@ -137,8 +137,8 @@ def plot_cm(cm, title, path, color):
     plt.close()
     print(f"  -> Imagen guardada: {path}")
 
-plot_cm(rn_cm, "Red Neuronal — Diabetes", "cm_rn_diabetes.png",  "blue")
-plot_cm(rf_cm, "Random Forest — Diabetes", "cm_rf_diabetes.png", "green")
+plot_cm(rn_cm, "Red Neuronal — Diabetes", "graficos/cm_rn_diabetes.png",  "blue")
+plot_cm(rf_cm, "Random Forest — Diabetes", "graficos/cm_rf_diabetes.png", "green")
 
 # Gráfico de barras comparativo
 def plot_comparison(path):
@@ -186,14 +186,14 @@ def plot_comparison(path):
     plt.close()
     print(f"  -> Imagen guardada: {path}")
 
-plot_comparison("comparacion_diabetes.png")
+plot_comparison("graficos/comparacion_diabetes.png")
 
 # ══════════════════════════════════════════════════════════════
 # 4. CONSTRUIR EL DOCUMENTO WORD
 # ══════════════════════════════════════════════════════════════
 print("\nGenerando documento Word...")
 
-doc = Document("Plantilla_Informe2.docx")
+doc = Document("plantillas/Plantilla_Informe2.docx")
 
 # Vaciar el cuerpo conservando la sección (sectPr) que python-docx necesita
 body = doc.element.body
@@ -460,7 +460,7 @@ for i, row in enumerate(metrics_data):
 doc.add_paragraph()
 
 add_para(doc, "B.  Gráfico Comparativo de Métricas", bold=True, size=10)
-doc.add_picture("comparacion_diabetes.png", width=Inches(5.5))
+doc.add_picture("graficos/comparacion_diabetes.png", width=Inches(5.5))
 last_para = doc.paragraphs[-1]
 last_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
 cap_fig1 = doc.add_paragraph()
@@ -479,14 +479,14 @@ cell_rn = cm_tbl.rows[0].cells[0]
 p_rn = cell_rn.paragraphs[0]
 p_rn.alignment = WD_ALIGN_PARAGRAPH.CENTER
 run_rn = p_rn.add_run()
-run_rn.add_picture("cm_rn_diabetes.png", width=Inches(2.8))
+run_rn.add_picture("graficos/cm_rn_diabetes.png", width=Inches(2.8))
 
 # Random Forest
 cell_rf = cm_tbl.rows[0].cells[1]
 p_rf = cell_rf.paragraphs[0]
 p_rf.alignment = WD_ALIGN_PARAGRAPH.CENTER
 run_rf = p_rf.add_run()
-run_rf.add_picture("cm_rf_diabetes.png", width=Inches(2.8))
+run_rf.add_picture("graficos/cm_rf_diabetes.png", width=Inches(2.8))
 
 cap_cm = doc.add_paragraph()
 cap_cm.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -595,7 +595,7 @@ for ref in refs:
 # ══════════════════════════════════════════════════════════════
 # 5. GUARDAR
 # ══════════════════════════════════════════════════════════════
-OUTPUT = "Informe_Comparacion_Diabetes.docx"
+OUTPUT = "informes/Informe_Comparacion_Diabetes.docx"
 doc.save(OUTPUT)
 print(f"\n[OK] Informe guardado: {OUTPUT}")
 print("   (Los archivos de imagen temporales cm_rn_diabetes.png, cm_rf_diabetes.png,")

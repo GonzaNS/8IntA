@@ -7,15 +7,3 @@ __pycache__/
 
 # Ignorar entorno virtual (¡Muy importante!)
 ec2ml/
-
-
-# Ignorar carpeta de documentación interna
-md/
-# Permitir el README raíz explícitamente
-!README.md
-
-generar_informe.py
-*.docx
-
-generar_informe_diabetes.py
-*.png

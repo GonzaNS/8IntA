@@ -74,7 +74,7 @@ def pct(value):
 # ══════════════════════════════════════════════════════════════════════
 #  ABRIR PLANTILLA Y LIMPIAR CONTENIDO DE EJEMPLO
 # ══════════════════════════════════════════════════════════════════════
-doc = Document('Plantilla_Informe2.docx')
+doc = Document('plantillas/Plantilla_Informe2.docx')
 
 # Eliminar todos los párrafos existentes (preservamos los estilos)
 for p in doc.paragraphs:
@@ -515,6 +515,6 @@ for i, ref in enumerate(refs):
 # ══════════════════════════════════════════════════════════════════════
 #  GUARDAR
 # ══════════════════════════════════════════════════════════════════════
-output_path = 'Informe_Comparacion_Anemia.docx'
+output_path = 'informes/Informe_Comparacion_Anemia.docx'
 doc.save(output_path)
 print('Documento guardado como: ' + output_path)

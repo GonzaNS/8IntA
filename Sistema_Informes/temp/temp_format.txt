@@ -1,0 +1,74 @@
+﻿=== NUEVO FORMATO - ESTILOS ===
+normal
+Heading 1
+Heading 2
+Heading 3
+Heading 4
+Heading 5
+Heading 6
+Title
+Subtitle
+
+=== NUEVO FORMATO - PRIMEROS 60 PARRAFOS ===
+0: [normal] 'Submission Template for ACM Papers'
+1: [normal] 'This is Short Title of the paper, used in page headers'
+2: [Subtitle] 'This is the subtitle of the paper, this document both explains and embodies the submission format for authors using Word'
+3: [normal] "First Author's Name*"
+4: [normal] "First author's affiliation, an Institution with a very long name, xxxx@gmail.com"
+5: [normal] "Second Author's Name"
+6: [normal] "Second author's affiliation, possibly the same institution, xxxx@gmail.com"
+7: [normal] "Third Author's Name"
+8: [normal] "Third author's affiliation, possibly the same institution, xxxx@gmail.com"
+9: [normal] 'Although there is no distinctive header, this is the abstract. This submission template allows authors to submit their p'
+10: [normal] 'CCS CONCEPTS ÔÇó Insert your first CCS term here ÔÇó Insert your second CCS term here ÔÇó Insert your third CCS term here'
+11: [normal] 'Additional Keywords and Phrases: Insert comma delimited author-supplied keyword list, Keyword number 2, Keyword number 3'
+12: [normal] 'ACM Reference Format:'
+13: [normal] 'First AuthorÔÇÖs Name, Initials, and Last Name, Second AuthorÔÇÖs Name, Initials, and Last Name, and Third AuthorÔÇÖs Name, In'
+14: [normal] 'Introduction'
+15: [normal] "ACM's new manuscript submission template aims to provide consistent styles for use across ACM publications, and incorpor"
+16: [normal] 'This submission template allows authors to submit their papers for review to an ACM Conference or Journal without any ou'
+17: [normal] 'It is beneficial to create your document in draft mode with the style panel open in the left-side panel. If the panel is'
+18: [normal] 'All style elements are specified in this template to facilitate the production of your paper and to have the styles cons'
+19: [normal] 'Accessibility'
+20: [normal] 'Following the guidelines throughout this template will also improve the accessibility of your manuscript and increase th'
+21: [normal] 'To increase the accessibility of your manuscript, you should set the title and language metadata. On Word for Windows, o'
+22: [normal] 'To set the document language, click the Review tab in the Ribbon. On Word for Windows: Click the Language button and sel'
+23: [normal] 'More about the submission template'
+24: [normal] 'This submission version of your paper should not have headers or footers, these will be added when your manuscript is pr'
+25: [normal] 'If a paper is accepted for publication, authors will be instructed on the next steps. Authors must then follow the submi'
+26: [normal] 'Inserting CCS concepts'
+27: [normal] 'The new template enables you to import required indexing concepts for your article from the ACM Computing Classification'
+28: [normal] 'An additional step is necessary to ensure that the proper CCS terms are added to the Digital Library citation page: from'
+29: [normal] 'Inserting Content Elements'
+30: [normal] 'The next subsections provide instructions on how to insert figures, tables, and equations in your document. '
+31: [normal] 'Tables'
+32: [normal] 'Tables are ÔÇ£float elementsÔÇØ which should be inserted after their first text reference and have specific styles for ident'
+33: [normal] 'Authors can insert tables by using the MS Word option (INSERT ->Table) and providing the required row and column size. E'
+34: [normal] 'Table 1: Styles available in the Word template'
+35: [normal] 'a This is example of table footnote.'
+36: [normal] 'Tables can be very difficult for people using screen reader technology to understand unless they include markup that exp'
+37: [normal] 'Select that tableÔÇÖs row, then right-click the row and select ÔÇ£Table PropertiesÔÇØ;'
+38: [normal] 'In the Table Properties window, click the Row tab and select the box that says ÔÇ£Repeat as header row at the top of each '
+39: [normal] 'Or'
+40: [normal] 'Apply the ÔÇ£table headÔÇØ style by highlighting the respective row and applying the ÔÇ£TableHeadÔÇØ style found in the ÔÇ£Body El'
+41: [normal] 'Figures'
+42: [normal] 'Figures are ÔÇ£float elementsÔÇØ which should be inserted after their first text reference, and have specific styles for ide'
+43: [normal] 'To accommodate readers with color vision differences, figures should still be usable when printed in grayscale. Refer to'
+44: [normal] 'Half Width Figures.'
+45: [normal] 'Figure 1 is an example of a figure and caption spanning the half-page width (one column in a two column format) with the'
+47: [normal] 'Figure 1: 1907 Franklin Model D roadster. Photograph by Harris & Ewing, Inc. [Public domain], via Wikimedia Commons. (ht'
+48: [normal] 'Full Width Figures.'
+49: [normal] 'Figure 2 is an example of a figure and caption spanning the full-page width with the styles applied. If your figure cont'
+51: [normal] 'Figure 2: Mockup of a bombe machine at Bletchley Part. Photograph by Sarah Hartwell. [Public domain], via Wikimedia Comm'
+52: [normal] 'Multi-part figure.'
+53: [normal] 'Authors can also insert a multi-part figure above a single caption. Every inserted figure must have the ÔÇ£ImageÔÇØ style ap'
+54: [normal] 'If the author wants to insert two multi-part images, they must draw a one row and one column table and insert the images'
+55: [normal] 'If the author wants to insert three multi-part images, they must draw a one-row and three-column table and insert the im'
+56: [normal] 'If the author wants to insert four multi-part images, they must draw a two-row and two-column table and insert the image'
+57: [normal] 'Figure 3: The layout of multipart images should be as per the above example within the table. All images must have the ÔÇ£'
+58: [normal] 'Figure Descriptions.'
+59: [normal] 'Every figure should have a figure description unless it is purely decorative. These descriptions convey whatÔÇÖs in the im'
+
+=== TABLAS ===
+Tabla 0: 21x4 -- header: ['Style Tag', 'Definition', 'Style Tag', 'Definition']
+Tabla 1: 2x2 -- header: ['', '']
